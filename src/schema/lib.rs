@@ -253,6 +253,16 @@ pub struct RestoreRejection {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FaultDetail(String);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FaultReport(FaultDetail);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct HeadQuery(Option<StoreName>);
 
 #[rustfmt::skip]
@@ -289,6 +299,7 @@ pub enum Output {
     Restored(RestoreBundle),
     RestoreRejected(RestoreRejection),
     HeadsObserved(HeadListing),
+    MirrorFaulted(FaultReport),
 }
 
 #[rustfmt::skip]
@@ -444,6 +455,44 @@ impl From<StoreName> for RestoreQuery {
 }
 
 #[rustfmt::skip]
+impl FaultDetail {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for FaultDetail {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl FaultReport {
+    pub fn new(payload: FaultDetail) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &FaultDetail {
+        &self.0
+    }
+    pub fn into_payload(self) -> FaultDetail {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<FaultDetail> for FaultReport {
+    fn from(payload: FaultDetail) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl HeadQuery {
     pub fn new(payload: Option<StoreName>) -> Self {
         Self(payload)
@@ -519,6 +568,9 @@ impl Output {
     }
     pub fn heads_observed(payload: Vec<StoreHead>) -> Self {
         Self::HeadsObserved(HeadListing::new(payload))
+    }
+    pub fn mirror_faulted(payload: FaultDetail) -> Self {
+        Self::MirrorFaulted(FaultReport::new(payload))
     }
 }
 
@@ -600,6 +652,13 @@ impl From<HeadListing> for Output {
 }
 
 #[rustfmt::skip]
+impl From<FaultReport> for Output {
+    fn from(payload: FaultReport) -> Self {
+        Self::MirrorFaulted(payload)
+    }
+}
+
+#[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 impl std::str::FromStr for Input {
     type Err = NotaDecodeError;
@@ -644,6 +703,7 @@ pub mod short_header {
     pub const OUTPUT_RESTORED: u64 = 0x0104000000000000;
     pub const OUTPUT_RESTORE_REJECTED: u64 = 0x0105000000000000;
     pub const OUTPUT_HEADS_OBSERVED: u64 = 0x0106000000000000;
+    pub const OUTPUT_MIRROR_FAULTED: u64 = 0x0107000000000000;
 }
 
 #[rustfmt::skip]
@@ -720,6 +780,7 @@ pub enum OutputRoute {
     Restored,
     RestoreRejected,
     HeadsObserved,
+    MirrorFaulted,
 }
 
 #[rustfmt::skip]
@@ -803,6 +864,7 @@ impl Output {
             Self::Restored(_) => OutputRoute::Restored,
             Self::RestoreRejected(_) => OutputRoute::RestoreRejected,
             Self::HeadsObserved(_) => OutputRoute::HeadsObserved,
+            Self::MirrorFaulted(_) => OutputRoute::MirrorFaulted,
         }
     }
     pub fn short_header(&self) -> u64 {
@@ -814,6 +876,7 @@ impl Output {
             Self::Restored(_) => short_header::OUTPUT_RESTORED,
             Self::RestoreRejected(_) => short_header::OUTPUT_RESTORE_REJECTED,
             Self::HeadsObserved(_) => short_header::OUTPUT_HEADS_OBSERVED,
+            Self::MirrorFaulted(_) => short_header::OUTPUT_MIRROR_FAULTED,
         }
     }
     pub fn route_from_short_header(
@@ -829,6 +892,7 @@ impl Output {
             short_header::OUTPUT_RESTORED => Ok(OutputRoute::Restored),
             short_header::OUTPUT_RESTORE_REJECTED => Ok(OutputRoute::RestoreRejected),
             short_header::OUTPUT_HEADS_OBSERVED => Ok(OutputRoute::HeadsObserved),
+            short_header::OUTPUT_MIRROR_FAULTED => Ok(OutputRoute::MirrorFaulted),
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Output",

@@ -23,7 +23,8 @@
  (PublishRejected PublishRejection)
  (Restored RestoreBundle)
  (RestoreRejected RestoreRejection)
- (HeadsObserved HeadListing)]
+ (HeadsObserved HeadListing)
+ (MirrorFaulted FaultReport)]
 {
   StoreName { value String }
   CommitSequence { value Integer }
@@ -84,6 +85,11 @@
 
   RestoreRejectionReason [UnknownStore NoCheckpoint]
   RestoreRejection { store StoreName reason RestoreRejectionReason }
+
+  ;; The mirror's internal-fault reply: a storage fault surfaced as a
+  ;; typed report instead of a dropped connection.
+  FaultDetail { value String }
+  FaultReport { detail FaultDetail }
 
   HeadQuery { store (Optional StoreName) }
   StoreHead { store StoreName head (Optional HeadMark) }

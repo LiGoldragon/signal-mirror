@@ -283,3 +283,12 @@ fn payload_bytes_stay_opaque_through_the_frame() {
         other => panic!("expected request frame, got {other:?}"),
     }
 }
+
+#[test]
+fn mirror_faulted_reply_round_trips() {
+    let reply = Output::MirrorFaulted(signal_mirror::FaultReport::new(
+        signal_mirror::FaultDetail::new("ledger storage: io".to_owned()),
+    ));
+    assert_reply_round_trips(reply.clone());
+    assert_nota_round_trips(&reply);
+}
