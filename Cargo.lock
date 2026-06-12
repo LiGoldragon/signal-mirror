@@ -400,7 +400,6 @@ dependencies = [
  "rkyv",
  "schema-rust-next",
  "signal-frame",
- "thiserror",
 ]
 
 [[package]]
