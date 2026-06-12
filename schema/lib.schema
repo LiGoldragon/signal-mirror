@@ -1,0 +1,91 @@
+;; signal-mirror — ordinary working wire contract for the sema
+;; version-control mirror (the version-control remote, Spirit 0yx5).
+;;
+;; Wire-only: emits the rkyv + optional NOTA codec and the signal-frame
+;; request/reply envelope. Validation (expected head, idempotent dedup,
+;; gap/fork rejection), durable state, and the listeners live in the
+;; mirror daemon.
+;;
+;; PAYLOAD-BLIND VOCABULARY. The entry envelope repeats the versioned
+;; commit log entry's chain coordinates (commit sequence, previous
+;; digest, digest) beside opaque payload bytes; the checkpoint artifact
+;; does the same for checkpoints. The mirror validates the chain and
+;; stores the bytes; only the owning component decodes them. All
+;; digests are blake3, 32 bytes (Spirit x0ja).
+
+[(Append EntrySuffix)
+ (PublishCheckpoint CheckpointArtifact)
+ (Restore RestoreQuery)
+ (ObserveHeads HeadQuery)]
+[(Appended AppendReceipt)
+ (AppendRejected AppendRejection)
+ (CheckpointPublished CheckpointReceipt)
+ (PublishRejected PublishRejection)
+ (Restored RestoreBundle)
+ (RestoreRejected RestoreRejection)
+ (HeadsObserved HeadListing)]
+{
+  StoreName { value String }
+  CommitSequence { value Integer }
+  CheckpointSequence { value Integer }
+  EntryDigest { value (Bytes 32) }
+  ArtifactDigest { value (Bytes 32) }
+  PayloadBytes { value Bytes }
+  ArtifactBytes { value Bytes }
+
+  HeadMark { sequence CommitSequence digest EntryDigest }
+
+  EntryEnvelope {
+    sequence CommitSequence
+    previous_digest (Optional EntryDigest)
+    digest EntryDigest
+    payload PayloadBytes
+  }
+
+  EntrySuffix {
+    store StoreName
+    expected_head (Optional HeadMark)
+    entries (Vec EntryEnvelope)
+  }
+
+  AppendReceipt { store StoreName head HeadMark }
+
+  AppendRejectionReason [UnknownStore SequenceGap HeadForked DigestMismatch EmptySuffix]
+  AppendRejection {
+    store StoreName
+    reason AppendRejectionReason
+    head (Optional HeadMark)
+  }
+
+  CheckpointArtifact {
+    store StoreName
+    sequence CheckpointSequence
+    covered_end CommitSequence
+    digest ArtifactDigest
+    artifact ArtifactBytes
+  }
+
+  CheckpointReceipt {
+    store StoreName
+    sequence CheckpointSequence
+    covered_end CommitSequence
+  }
+
+  PublishRejectionReason [UnknownStore CoverageRegressed]
+  PublishRejection { store StoreName reason PublishRejectionReason }
+
+  RestoreQuery { store StoreName }
+
+  RestoreBundle {
+    store StoreName
+    checkpoint CheckpointArtifact
+    suffix (Vec EntryEnvelope)
+  }
+
+  RestoreRejectionReason [UnknownStore NoCheckpoint]
+  RestoreRejection { store StoreName reason RestoreRejectionReason }
+
+  HeadQuery { store (Optional StoreName) }
+  StoreHead { store StoreName head (Optional HeadMark) }
+  HeadListing { heads (Vec StoreHead) }
+}
