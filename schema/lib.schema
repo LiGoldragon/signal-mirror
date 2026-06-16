@@ -13,6 +13,8 @@
 ;; stores the bytes; only the owning component decodes them. All
 ;; digests are blake3, 32 bytes (Spirit x0ja).
 
+{}
+
 [(Append EntrySuffix)
  (PublishCheckpoint CheckpointArtifact)
  (Restore RestoreQuery)
@@ -26,13 +28,13 @@
  (HeadsObserved HeadListing)
  (MirrorFaulted FaultReport)]
 {
-  StoreName { value String }
-  CommitSequence { value Integer }
-  CheckpointSequence { value Integer }
-  EntryDigest { value (Bytes 32) }
-  ArtifactDigest { value (Bytes 32) }
-  PayloadBytes { value Bytes }
-  ArtifactBytes { value Bytes }
+  StoreName String
+  CommitSequence Integer
+  CheckpointSequence Integer
+  EntryDigest (Bytes 32)
+  ArtifactDigest (Bytes 32)
+  PayloadBytes Bytes
+  ArtifactBytes Bytes
 
   HeadMark { sequence CommitSequence digest EntryDigest }
 
@@ -46,7 +48,7 @@
   EntrySuffix {
     store StoreName
     expected_head (Optional HeadMark)
-    entries (Vec EntryEnvelope)
+    entries (Vector EntryEnvelope)
   }
 
   AppendReceipt { store StoreName head HeadMark }
@@ -80,7 +82,7 @@
   RestoreBundle {
     store StoreName
     checkpoint CheckpointArtifact
-    suffix (Vec EntryEnvelope)
+    suffix (Vector EntryEnvelope)
   }
 
   RestoreRejectionReason [UnknownStore NoCheckpoint]
@@ -88,10 +90,10 @@
 
   ;; The mirror's internal-fault reply: a storage fault surfaced as a
   ;; typed report instead of a dropped connection.
-  FaultDetail { value String }
+  FaultDetail String
   FaultReport { detail FaultDetail }
 
   HeadQuery { store (Optional StoreName) }
   StoreHead { store StoreName head (Optional HeadMark) }
-  HeadListing { heads (Vec StoreHead) }
+  HeadListing { heads (Vector StoreHead) }
 }
