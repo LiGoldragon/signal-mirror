@@ -214,6 +214,55 @@ pub struct PublishRejection {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct MirrorAddress(String);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ObjectNotice {
+    pub store: StoreName,
+    pub head: HeadMark,
+    pub source: Option<MirrorAddress>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ObjectNoticeReceipt {
+    pub store: StoreName,
+    pub head: HeadMark,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ObjectNoticeRejectionReason {
+    UnknownStore,
+    SourceUnavailable,
+    HeadBehind,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ObjectNoticeRejection {
+    pub store: StoreName,
+    pub reason: ObjectNoticeRejectionReason,
+    pub head: Option<HeadMark>,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RestoreQuery(StoreName);
 
 #[rustfmt::skip]
@@ -284,6 +333,7 @@ pub struct HeadListing(Vec<StoreHead>);
 pub enum Input {
     Append(EntrySuffix),
     PublishCheckpoint(CheckpointArtifact),
+    NotifyObject(ObjectNotice),
     Restore(RestoreQuery),
     ObserveHeads(HeadQuery),
 }
@@ -296,6 +346,8 @@ pub enum Output {
     AppendRejected(AppendRejection),
     CheckpointPublished(CheckpointReceipt),
     PublishRejected(PublishRejection),
+    ObjectNoticeAccepted(ObjectNoticeReceipt),
+    ObjectNoticeRejected(ObjectNoticeRejection),
     Restored(RestoreBundle),
     RestoreRejected(RestoreRejection),
     HeadsObserved(HeadListing),
@@ -490,6 +542,43 @@ impl From<Bytes> for ArtifactBytes {
 }
 
 #[rustfmt::skip]
+impl MirrorAddress {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for MirrorAddress {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+#[rustfmt::skip]
+impl std::fmt::Display for MirrorAddress {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.payload().fmt(formatter)
+    }
+}
+#[rustfmt::skip]
+impl AsRef<str> for MirrorAddress {
+    fn as_ref(&self) -> &str {
+        self.payload().as_str()
+    }
+}
+#[rustfmt::skip]
+impl PartialEq<&str> for MirrorAddress {
+    fn eq(&self, other: &&str) -> bool {
+        self.payload() == other
+    }
+}
+
+#[rustfmt::skip]
 impl RestoreQuery {
     pub fn new(payload: StoreName) -> Self {
         Self(payload)
@@ -610,6 +699,9 @@ impl Input {
     pub fn publish_checkpoint(payload: CheckpointArtifact) -> Self {
         Self::PublishCheckpoint(payload)
     }
+    pub fn notify_object(payload: ObjectNotice) -> Self {
+        Self::NotifyObject(payload)
+    }
     pub fn restore(payload: StoreName) -> Self {
         Self::Restore(RestoreQuery::new(payload))
     }
@@ -631,6 +723,12 @@ impl Output {
     }
     pub fn publish_rejected(payload: PublishRejection) -> Self {
         Self::PublishRejected(payload)
+    }
+    pub fn object_notice_accepted(payload: ObjectNoticeReceipt) -> Self {
+        Self::ObjectNoticeAccepted(payload)
+    }
+    pub fn object_notice_rejected(payload: ObjectNoticeRejection) -> Self {
+        Self::ObjectNoticeRejected(payload)
     }
     pub fn restored(payload: RestoreBundle) -> Self {
         Self::Restored(payload)
@@ -657,6 +755,13 @@ impl From<EntrySuffix> for Input {
 impl From<CheckpointArtifact> for Input {
     fn from(payload: CheckpointArtifact) -> Self {
         Self::PublishCheckpoint(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ObjectNotice> for Input {
+    fn from(payload: ObjectNotice) -> Self {
+        Self::NotifyObject(payload)
     }
 }
 
@@ -699,6 +804,20 @@ impl From<CheckpointReceipt> for Output {
 impl From<PublishRejection> for Output {
     fn from(payload: PublishRejection) -> Self {
         Self::PublishRejected(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ObjectNoticeReceipt> for Output {
+    fn from(payload: ObjectNoticeReceipt) -> Self {
+        Self::ObjectNoticeAccepted(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ObjectNoticeRejection> for Output {
+    fn from(payload: ObjectNoticeRejection) -> Self {
+        Self::ObjectNoticeRejected(payload)
     }
 }
 
@@ -766,16 +885,19 @@ impl std::fmt::Display for Output {
 pub mod short_header {
     pub const INPUT_APPEND: u64 = 0x0000000000000000;
     pub const INPUT_PUBLISH_CHECKPOINT: u64 = 0x0001000000000000;
-    pub const INPUT_RESTORE: u64 = 0x0002000000000000;
-    pub const INPUT_OBSERVE_HEADS: u64 = 0x0003000000000000;
+    pub const INPUT_NOTIFY_OBJECT: u64 = 0x0002000000000000;
+    pub const INPUT_RESTORE: u64 = 0x0003000000000000;
+    pub const INPUT_OBSERVE_HEADS: u64 = 0x0004000000000000;
     pub const OUTPUT_APPENDED: u64 = 0x0100000000000000;
     pub const OUTPUT_APPEND_REJECTED: u64 = 0x0101000000000000;
     pub const OUTPUT_CHECKPOINT_PUBLISHED: u64 = 0x0102000000000000;
     pub const OUTPUT_PUBLISH_REJECTED: u64 = 0x0103000000000000;
-    pub const OUTPUT_RESTORED: u64 = 0x0104000000000000;
-    pub const OUTPUT_RESTORE_REJECTED: u64 = 0x0105000000000000;
-    pub const OUTPUT_HEADS_OBSERVED: u64 = 0x0106000000000000;
-    pub const OUTPUT_MIRROR_FAULTED: u64 = 0x0107000000000000;
+    pub const OUTPUT_OBJECT_NOTICE_ACCEPTED: u64 = 0x0104000000000000;
+    pub const OUTPUT_OBJECT_NOTICE_REJECTED: u64 = 0x0105000000000000;
+    pub const OUTPUT_RESTORED: u64 = 0x0106000000000000;
+    pub const OUTPUT_RESTORE_REJECTED: u64 = 0x0107000000000000;
+    pub const OUTPUT_HEADS_OBSERVED: u64 = 0x0108000000000000;
+    pub const OUTPUT_MIRROR_FAULTED: u64 = 0x0109000000000000;
 }
 
 #[rustfmt::skip]
@@ -828,6 +950,7 @@ impl std::error::Error for SignalFrameError {}
 pub enum InputRoute {
     Append,
     PublishCheckpoint,
+    NotifyObject,
     Restore,
     ObserveHeads,
 }
@@ -849,6 +972,8 @@ pub enum OutputRoute {
     AppendRejected,
     CheckpointPublished,
     PublishRejected,
+    ObjectNoticeAccepted,
+    ObjectNoticeRejected,
     Restored,
     RestoreRejected,
     HeadsObserved,
@@ -861,6 +986,7 @@ impl Input {
         match self {
             Self::Append(_) => InputRoute::Append,
             Self::PublishCheckpoint(_) => InputRoute::PublishCheckpoint,
+            Self::NotifyObject(_) => InputRoute::NotifyObject,
             Self::Restore(_) => InputRoute::Restore,
             Self::ObserveHeads(_) => InputRoute::ObserveHeads,
         }
@@ -869,6 +995,7 @@ impl Input {
         match self {
             Self::Append(_) => short_header::INPUT_APPEND,
             Self::PublishCheckpoint(_) => short_header::INPUT_PUBLISH_CHECKPOINT,
+            Self::NotifyObject(_) => short_header::INPUT_NOTIFY_OBJECT,
             Self::Restore(_) => short_header::INPUT_RESTORE,
             Self::ObserveHeads(_) => short_header::INPUT_OBSERVE_HEADS,
         }
@@ -877,6 +1004,7 @@ impl Input {
         match header {
             short_header::INPUT_APPEND => Ok(InputRoute::Append),
             short_header::INPUT_PUBLISH_CHECKPOINT => Ok(InputRoute::PublishCheckpoint),
+            short_header::INPUT_NOTIFY_OBJECT => Ok(InputRoute::NotifyObject),
             short_header::INPUT_RESTORE => Ok(InputRoute::Restore),
             short_header::INPUT_OBSERVE_HEADS => Ok(InputRoute::ObserveHeads),
             _ => {
@@ -933,6 +1061,8 @@ impl Output {
             Self::AppendRejected(_) => OutputRoute::AppendRejected,
             Self::CheckpointPublished(_) => OutputRoute::CheckpointPublished,
             Self::PublishRejected(_) => OutputRoute::PublishRejected,
+            Self::ObjectNoticeAccepted(_) => OutputRoute::ObjectNoticeAccepted,
+            Self::ObjectNoticeRejected(_) => OutputRoute::ObjectNoticeRejected,
             Self::Restored(_) => OutputRoute::Restored,
             Self::RestoreRejected(_) => OutputRoute::RestoreRejected,
             Self::HeadsObserved(_) => OutputRoute::HeadsObserved,
@@ -945,6 +1075,8 @@ impl Output {
             Self::AppendRejected(_) => short_header::OUTPUT_APPEND_REJECTED,
             Self::CheckpointPublished(_) => short_header::OUTPUT_CHECKPOINT_PUBLISHED,
             Self::PublishRejected(_) => short_header::OUTPUT_PUBLISH_REJECTED,
+            Self::ObjectNoticeAccepted(_) => short_header::OUTPUT_OBJECT_NOTICE_ACCEPTED,
+            Self::ObjectNoticeRejected(_) => short_header::OUTPUT_OBJECT_NOTICE_REJECTED,
             Self::Restored(_) => short_header::OUTPUT_RESTORED,
             Self::RestoreRejected(_) => short_header::OUTPUT_RESTORE_REJECTED,
             Self::HeadsObserved(_) => short_header::OUTPUT_HEADS_OBSERVED,
@@ -961,6 +1093,12 @@ impl Output {
                 Ok(OutputRoute::CheckpointPublished)
             }
             short_header::OUTPUT_PUBLISH_REJECTED => Ok(OutputRoute::PublishRejected),
+            short_header::OUTPUT_OBJECT_NOTICE_ACCEPTED => {
+                Ok(OutputRoute::ObjectNoticeAccepted)
+            }
+            short_header::OUTPUT_OBJECT_NOTICE_REJECTED => {
+                Ok(OutputRoute::ObjectNoticeRejected)
+            }
             short_header::OUTPUT_RESTORED => Ok(OutputRoute::Restored),
             short_header::OUTPUT_RESTORE_REJECTED => Ok(OutputRoute::RestoreRejected),
             short_header::OUTPUT_HEADS_OBSERVED => Ok(OutputRoute::HeadsObserved),
@@ -1018,6 +1156,7 @@ impl signal_frame::SignalOperationHeads for Input {
     const HEADS: &'static [&'static str] = &[
         "Append",
         "PublishCheckpoint",
+        "NotifyObject",
         "Restore",
         "ObserveHeads",
     ];

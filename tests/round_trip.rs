@@ -12,8 +12,9 @@ use signal_mirror::{
     AppendReceipt, AppendRejection, AppendRejectionReason, ArtifactBytes, ArtifactDigest, Bytes,
     CheckpointArtifact, CheckpointReceipt, CheckpointSequence, CommitSequence, EntryDigest,
     EntryEnvelope, EntrySuffix, FixedBytes, Frame, FrameBody, HeadListing, HeadMark, HeadQuery,
-    Input, Output, PayloadBytes, PublishRejection, PublishRejectionReason, RestoreBundle,
-    RestoreQuery, RestoreRejection, RestoreRejectionReason, StoreHead, StoreName,
+    Input, MirrorAddress, ObjectNotice, ObjectNoticeReceipt, ObjectNoticeRejection,
+    ObjectNoticeRejectionReason, Output, PayloadBytes, PublishRejection, PublishRejectionReason,
+    RestoreBundle, RestoreQuery, RestoreRejection, RestoreRejectionReason, StoreHead, StoreName,
 };
 
 fn exchange() -> ExchangeIdentifier {
@@ -55,6 +56,16 @@ fn artifact(sequence: u64, covered_end: u64) -> CheckpointArtifact {
         covered_end: CommitSequence::new(covered_end),
         digest: ArtifactDigest::new(FixedBytes::new([7; 32])),
         artifact: ArtifactBytes::new(Bytes::new(vec![1, 2, 3, 4])),
+    }
+}
+
+fn object_notice() -> ObjectNotice {
+    ObjectNotice {
+        store: store("spirit"),
+        head: head(4, 0x44),
+        source: Some(MirrorAddress::new(
+            "router.ouranos.goldragon.criome:7476".to_owned(),
+        )),
     }
 }
 
@@ -143,6 +154,13 @@ fn publish_checkpoint_request_round_trips() {
 }
 
 #[test]
+fn notify_object_request_round_trips() {
+    let request = Input::NotifyObject(object_notice());
+    assert_request_round_trips(request.clone());
+    assert_nota_round_trips(&request);
+}
+
+#[test]
 fn restore_request_round_trips() {
     let request = Input::Restore(RestoreQuery::new(store("spirit")));
     assert_request_round_trips(request.clone());
@@ -212,6 +230,30 @@ fn publish_rejected_reply_round_trips() {
         });
         assert_reply_round_trips(reply.clone());
         assert_nota_round_trips(&reply);
+    }
+}
+
+#[test]
+fn object_notice_replies_round_trip() {
+    let accepted = Output::ObjectNoticeAccepted(ObjectNoticeReceipt {
+        store: store("spirit"),
+        head: head(4, 0x44),
+    });
+    assert_reply_round_trips(accepted.clone());
+    assert_nota_round_trips(&accepted);
+
+    for reason in [
+        ObjectNoticeRejectionReason::UnknownStore,
+        ObjectNoticeRejectionReason::SourceUnavailable,
+        ObjectNoticeRejectionReason::HeadBehind,
+    ] {
+        let rejected = Output::ObjectNoticeRejected(ObjectNoticeRejection {
+            store: store("spirit"),
+            reason,
+            head: Some(head(2, 0x22)),
+        });
+        assert_reply_round_trips(rejected.clone());
+        assert_nota_round_trips(&rejected);
     }
 }
 

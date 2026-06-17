@@ -17,12 +17,15 @@
 
 [(Append EntrySuffix)
  (PublishCheckpoint CheckpointArtifact)
+ (NotifyObject ObjectNotice)
  (Restore RestoreQuery)
  (ObserveHeads HeadQuery)]
 [(Appended AppendReceipt)
  (AppendRejected AppendRejection)
  (CheckpointPublished CheckpointReceipt)
  (PublishRejected PublishRejection)
+ (ObjectNoticeAccepted ObjectNoticeReceipt)
+ (ObjectNoticeRejected ObjectNoticeRejection)
  (Restored RestoreBundle)
  (RestoreRejected RestoreRejection)
  (HeadsObserved HeadListing)
@@ -76,6 +79,23 @@
 
   PublishRejectionReason [UnknownStore CoverageRegressed]
   PublishRejection { store StoreName reason PublishRejectionReason }
+
+  MirrorAddress String
+
+  ObjectNotice {
+    store StoreName
+    head HeadMark
+    source (Optional MirrorAddress)
+  }
+
+  ObjectNoticeReceipt { store StoreName head HeadMark }
+
+  ObjectNoticeRejectionReason [UnknownStore SourceUnavailable HeadBehind]
+  ObjectNoticeRejection {
+    store StoreName
+    reason ObjectNoticeRejectionReason
+    head (Optional HeadMark)
+  }
 
   RestoreQuery { store StoreName }
 

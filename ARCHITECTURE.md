@@ -19,8 +19,10 @@ One relation: **component store ↔ mirror daemon**, over Unix socket
 - **Cardinality.** Many components to one mirror; each request names its
   store.
 - **Direction.** `Append` and `PublishCheckpoint` push history; `Restore` and
-  `ObserveHeads` read it back. All four are request/reply; no events in this
-  cut.
+  `ObserveHeads` read it back. `NotifyObject` is the router-carried
+  object/head notice: it names the store, the announced head, and optionally
+  the source mirror endpoint a receiver can fetch from. Every operation is
+  request/reply in this cut.
 - **Authority.** The component mints commit sequences and digests (its
   sema-engine versioned log already did); the mirror only validates
   continuity and echoes heads. Store registration authority lives in
