@@ -113,9 +113,14 @@ pub struct HeadMark {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct PreviousDigest(Option<EntryDigest>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct EntryEnvelope {
     pub sequence: CommitSequence,
-    pub previous_digest: Option<EntryDigest>,
+    pub(crate) previous_digest: PreviousDigest,
     pub digest: EntryDigest,
     pub payload: PayloadBytes,
 }
@@ -123,10 +128,20 @@ pub struct EntryEnvelope {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ExpectedHead(Option<HeadMark>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Entries(Vec<EntryEnvelope>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct EntrySuffix {
     pub store: StoreName,
-    pub expected_head: Option<HeadMark>,
-    pub entries: Vec<EntryEnvelope>,
+    pub(crate) expected_head: ExpectedHead,
+    pub(crate) entries: Entries,
 }
 
 #[rustfmt::skip]
@@ -160,10 +175,15 @@ pub enum AppendRejectionReason {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct AppendRejectionHead(Option<HeadMark>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AppendRejection {
     pub store: StoreName,
     pub reason: AppendRejectionReason,
-    pub head: Option<HeadMark>,
+    pub(crate) append_rejection_head: AppendRejectionHead,
 }
 
 #[rustfmt::skip]
@@ -219,10 +239,15 @@ pub struct MirrorAddress(String);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Source(Option<MirrorAddress>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectNotice {
     pub store: StoreName,
     pub head: HeadMark,
-    pub source: Option<MirrorAddress>,
+    pub(crate) source: Source,
 }
 
 #[rustfmt::skip]
@@ -254,10 +279,15 @@ pub enum ObjectNoticeRejectionReason {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ObjectNoticeRejectionHead(Option<HeadMark>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectNoticeRejection {
     pub store: StoreName,
     pub reason: ObjectNoticeRejectionReason,
-    pub head: Option<HeadMark>,
+    pub(crate) object_notice_rejection_head: ObjectNoticeRejectionHead,
 }
 
 #[rustfmt::skip]
@@ -268,10 +298,15 @@ pub struct RestoreQuery(StoreName);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Suffix(Vec<EntryEnvelope>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RestoreBundle {
     pub store: StoreName,
     pub checkpoint: CheckpointArtifact,
-    pub suffix: Vec<EntryEnvelope>,
+    pub(crate) suffix: Suffix,
 }
 
 #[rustfmt::skip]
@@ -317,15 +352,25 @@ pub struct HeadQuery(Option<StoreName>);
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub(crate) struct StoreHeadMark(Option<HeadMark>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct StoreHead {
     pub store: StoreName,
-    pub head: Option<HeadMark>,
+    pub(crate) store_head_mark: StoreHeadMark,
 }
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct HeadListing(Vec<StoreHead>);
+pub(crate) struct Heads(Vec<StoreHead>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct HeadListing(Heads);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -542,6 +587,82 @@ impl From<Bytes> for ArtifactBytes {
 }
 
 #[rustfmt::skip]
+impl PreviousDigest {
+    pub fn new(payload: Option<EntryDigest>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<EntryDigest> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<EntryDigest> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<EntryDigest>> for PreviousDigest {
+    fn from(payload: Option<EntryDigest>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ExpectedHead {
+    pub fn new(payload: Option<HeadMark>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<HeadMark> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<HeadMark> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<HeadMark>> for ExpectedHead {
+    fn from(payload: Option<HeadMark>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Entries {
+    pub fn new(payload: Vec<EntryEnvelope>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<EntryEnvelope> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<EntryEnvelope> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<EntryEnvelope>> for Entries {
+    fn from(payload: Vec<EntryEnvelope>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl AppendRejectionHead {
+    pub fn new(payload: Option<HeadMark>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<HeadMark> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<HeadMark> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<HeadMark>> for AppendRejectionHead {
+    fn from(payload: Option<HeadMark>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl MirrorAddress {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
@@ -579,6 +700,44 @@ impl PartialEq<&str> for MirrorAddress {
 }
 
 #[rustfmt::skip]
+impl Source {
+    pub fn new(payload: Option<MirrorAddress>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<MirrorAddress> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<MirrorAddress> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<MirrorAddress>> for Source {
+    fn from(payload: Option<MirrorAddress>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl ObjectNoticeRejectionHead {
+    pub fn new(payload: Option<HeadMark>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<HeadMark> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<HeadMark> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<HeadMark>> for ObjectNoticeRejectionHead {
+    fn from(payload: Option<HeadMark>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl RestoreQuery {
     pub fn new(payload: StoreName) -> Self {
         Self(payload)
@@ -593,6 +752,25 @@ impl RestoreQuery {
 #[rustfmt::skip]
 impl From<StoreName> for RestoreQuery {
     fn from(payload: StoreName) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Suffix {
+    pub fn new(payload: Vec<EntryEnvelope>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<EntryEnvelope> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<EntryEnvelope> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<EntryEnvelope>> for Suffix {
+    fn from(payload: Vec<EntryEnvelope>) -> Self {
         Self::new(payload)
     }
 }
@@ -673,7 +851,26 @@ impl From<Option<StoreName>> for HeadQuery {
 }
 
 #[rustfmt::skip]
-impl HeadListing {
+impl StoreHeadMark {
+    pub fn new(payload: Option<HeadMark>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<HeadMark> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<HeadMark> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<HeadMark>> for StoreHeadMark {
+    fn from(payload: Option<HeadMark>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Heads {
     pub fn new(payload: Vec<StoreHead>) -> Self {
         Self(payload)
     }
@@ -685,8 +882,27 @@ impl HeadListing {
     }
 }
 #[rustfmt::skip]
-impl From<Vec<StoreHead>> for HeadListing {
+impl From<Vec<StoreHead>> for Heads {
     fn from(payload: Vec<StoreHead>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl HeadListing {
+    pub fn new(payload: Heads) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Heads {
+        &self.0
+    }
+    pub fn into_payload(self) -> Heads {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Heads> for HeadListing {
+    fn from(payload: Heads) -> Self {
         Self::new(payload)
     }
 }
@@ -736,7 +952,7 @@ impl Output {
     pub fn restore_rejected(payload: RestoreRejection) -> Self {
         Self::RestoreRejected(payload)
     }
-    pub fn heads_observed(payload: Vec<StoreHead>) -> Self {
+    pub fn heads_observed(payload: Heads) -> Self {
         Self::HeadsObserved(HeadListing::new(payload))
     }
     pub fn mirror_faulted(payload: FaultDetail) -> Self {

@@ -41,12 +41,12 @@ fn head(sequence: u64, seed: u8) -> HeadMark {
 }
 
 fn envelope(sequence: u64, previous: Option<u8>, seed: u8) -> EntryEnvelope {
-    EntryEnvelope {
-        sequence: CommitSequence::new(sequence),
-        previous_digest: previous.map(digest),
-        digest: digest(seed),
-        payload: PayloadBytes::new(Bytes::new(vec![0xde, 0xad, seed])),
-    }
+    EntryEnvelope::new(
+        CommitSequence::new(sequence),
+        previous.map(digest),
+        digest(seed),
+        PayloadBytes::new(Bytes::new(vec![0xde, 0xad, seed])),
+    )
 }
 
 fn artifact(sequence: u64, covered_end: u64) -> CheckpointArtifact {
@@ -60,13 +60,13 @@ fn artifact(sequence: u64, covered_end: u64) -> CheckpointArtifact {
 }
 
 fn object_notice() -> ObjectNotice {
-    ObjectNotice {
-        store: store("spirit"),
-        head: head(4, 0x44),
-        source: Some(MirrorAddress::new(
+    ObjectNotice::new(
+        store("spirit"),
+        head(4, 0x44),
+        Some(MirrorAddress::new(
             "router.ouranos.goldragon.criome:7476".to_owned(),
         )),
-    }
+    )
 }
 
 fn request_frame(request: Input) -> Frame {
@@ -126,22 +126,22 @@ where
 
 #[test]
 fn append_request_round_trips_through_length_prefixed_frame() {
-    let request = Input::Append(EntrySuffix {
-        store: store("spirit"),
-        expected_head: Some(head(2, 0x22)),
-        entries: vec![envelope(3, Some(0x22), 0x33), envelope(4, Some(0x33), 0x44)],
-    });
+    let request = Input::Append(EntrySuffix::from_entries(
+        store("spirit"),
+        Some(head(2, 0x22)),
+        vec![envelope(3, Some(0x22), 0x33), envelope(4, Some(0x33), 0x44)],
+    ));
     assert_request_round_trips(request.clone());
     assert_nota_round_trips(&request);
 }
 
 #[test]
 fn first_append_request_carries_no_expected_head() {
-    let request = Input::Append(EntrySuffix {
-        store: store("spirit"),
-        expected_head: None,
-        entries: vec![envelope(1, None, 0x11)],
-    });
+    let request = Input::Append(EntrySuffix::from_entries(
+        store("spirit"),
+        None,
+        vec![envelope(1, None, 0x11)],
+    ));
     assert_request_round_trips(request.clone());
     assert_nota_round_trips(&request);
 }
@@ -197,11 +197,11 @@ fn append_rejected_reply_round_trips_with_every_typed_reason() {
         AppendRejectionReason::DigestMismatch,
         AppendRejectionReason::EmptySuffix,
     ] {
-        let reply = Output::AppendRejected(AppendRejection {
-            store: store("spirit"),
+        let reply = Output::AppendRejected(AppendRejection::new(
+            store("spirit"),
             reason,
-            head: Some(head(2, 0x22)),
-        });
+            Some(head(2, 0x22)),
+        ));
         assert_reply_round_trips(reply.clone());
         assert_nota_round_trips(&reply);
     }
@@ -247,11 +247,11 @@ fn object_notice_replies_round_trip() {
         ObjectNoticeRejectionReason::SourceUnavailable,
         ObjectNoticeRejectionReason::HeadBehind,
     ] {
-        let rejected = Output::ObjectNoticeRejected(ObjectNoticeRejection {
-            store: store("spirit"),
+        let rejected = Output::ObjectNoticeRejected(ObjectNoticeRejection::new(
+            store("spirit"),
             reason,
-            head: Some(head(2, 0x22)),
-        });
+            Some(head(2, 0x22)),
+        ));
         assert_reply_round_trips(rejected.clone());
         assert_nota_round_trips(&rejected);
     }
@@ -259,11 +259,11 @@ fn object_notice_replies_round_trip() {
 
 #[test]
 fn restored_reply_round_trips_with_checkpoint_and_suffix() {
-    let reply = Output::Restored(RestoreBundle {
-        store: store("spirit"),
-        checkpoint: artifact(1, 4),
-        suffix: vec![envelope(5, Some(0x44), 0x55)],
-    });
+    let reply = Output::Restored(RestoreBundle::from_suffix(
+        store("spirit"),
+        artifact(1, 4),
+        vec![envelope(5, Some(0x44), 0x55)],
+    ));
     assert_reply_round_trips(reply.clone());
     assert_nota_round_trips(&reply);
 }
@@ -285,15 +285,9 @@ fn restore_rejected_reply_round_trips() {
 
 #[test]
 fn heads_observed_reply_round_trips() {
-    let reply = Output::HeadsObserved(HeadListing::new(vec![
-        StoreHead {
-            store: store("spirit"),
-            head: Some(head(4, 0x44)),
-        },
-        StoreHead {
-            store: store("message"),
-            head: None,
-        },
+    let reply = Output::HeadsObserved(HeadListing::from_heads(vec![
+        StoreHead::new(store("spirit"), Some(head(4, 0x44))),
+        StoreHead::new(store("message"), None),
     ]));
     assert_reply_round_trips(reply.clone());
     assert_nota_round_trips(&reply);
@@ -302,23 +296,23 @@ fn heads_observed_reply_round_trips() {
 #[test]
 fn payload_bytes_stay_opaque_through_the_frame() {
     let opaque = vec![0x00, 0xff, 0x10, 0x80, 0x7f];
-    let request = Input::Append(EntrySuffix {
-        store: store("spirit"),
-        expected_head: None,
-        entries: vec![EntryEnvelope {
-            sequence: CommitSequence::new(1),
-            previous_digest: None,
-            digest: digest(0x11),
-            payload: PayloadBytes::new(Bytes::new(opaque.clone())),
-        }],
-    });
+    let request = Input::Append(EntrySuffix::from_entries(
+        store("spirit"),
+        None,
+        vec![EntryEnvelope::new(
+            CommitSequence::new(1),
+            None,
+            digest(0x11),
+            PayloadBytes::new(Bytes::new(opaque.clone())),
+        )],
+    ));
     let frame = request_frame(request);
     let bytes = frame.encode_length_prefixed().expect("encode");
     let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
     match decoded.into_body() {
         FrameBody::Request { request, .. } => match request.payloads().head() {
             Input::Append(suffix) => {
-                assert_eq!(suffix.entries[0].payload.as_slice(), opaque.as_slice());
+                assert_eq!(suffix.entries()[0].payload.as_slice(), opaque.as_slice());
             }
             other => panic!("expected Append, got {other:?}"),
         },
