@@ -417,24 +417,6 @@ impl From<String> for StoreName {
         Self::new(payload)
     }
 }
-#[rustfmt::skip]
-impl std::fmt::Display for StoreName {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl AsRef<str> for StoreName {
-    fn as_ref(&self) -> &str {
-        self.payload().as_str()
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<&str> for StoreName {
-    fn eq(&self, other: &&str) -> bool {
-        self.payload() == other
-    }
-}
 
 #[rustfmt::skip]
 impl CommitSequence {
@@ -454,24 +436,6 @@ impl From<Integer> for CommitSequence {
         Self::new(payload)
     }
 }
-#[rustfmt::skip]
-impl std::fmt::Display for CommitSequence {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<u64> for CommitSequence {
-    fn eq(&self, other: &u64) -> bool {
-        self.payload() == other
-    }
-}
-#[rustfmt::skip]
-impl PartialOrd<u64> for CommitSequence {
-    fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
-        self.payload().partial_cmp(other)
-    }
-}
 
 #[rustfmt::skip]
 impl CheckpointSequence {
@@ -489,24 +453,6 @@ impl CheckpointSequence {
 impl From<Integer> for CheckpointSequence {
     fn from(payload: Integer) -> Self {
         Self::new(payload)
-    }
-}
-#[rustfmt::skip]
-impl std::fmt::Display for CheckpointSequence {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<u64> for CheckpointSequence {
-    fn eq(&self, other: &u64) -> bool {
-        self.payload() == other
-    }
-}
-#[rustfmt::skip]
-impl PartialOrd<u64> for CheckpointSequence {
-    fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
-        self.payload().partial_cmp(other)
     }
 }
 
@@ -680,24 +626,6 @@ impl From<String> for MirrorAddress {
         Self::new(payload)
     }
 }
-#[rustfmt::skip]
-impl std::fmt::Display for MirrorAddress {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl AsRef<str> for MirrorAddress {
-    fn as_ref(&self) -> &str {
-        self.payload().as_str()
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<&str> for MirrorAddress {
-    fn eq(&self, other: &&str) -> bool {
-        self.payload() == other
-    }
-}
 
 #[rustfmt::skip]
 impl Source {
@@ -791,24 +719,6 @@ impl FaultDetail {
 impl From<String> for FaultDetail {
     fn from(payload: String) -> Self {
         Self::new(payload)
-    }
-}
-#[rustfmt::skip]
-impl std::fmt::Display for FaultDetail {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-#[rustfmt::skip]
-impl AsRef<str> for FaultDetail {
-    fn as_ref(&self) -> &str {
-        self.payload().as_str()
-    }
-}
-#[rustfmt::skip]
-impl PartialEq<&str> for FaultDetail {
-    fn eq(&self, other: &&str) -> bool {
-        self.payload() == other
     }
 }
 
