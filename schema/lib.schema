@@ -43,15 +43,15 @@
 
   EntryEnvelope {
     sequence.CommitSequence
-    (PreviousDigest (Optional EntryDigest))
+    PreviousDigest.(Optional EntryDigest)
     digest.EntryDigest
     payload.PayloadBytes
   }
 
   EntrySuffix {
     store.StoreName
-    (ExpectedHead (Optional HeadMark))
-    (Entries (Vector EntryEnvelope))
+    ExpectedHead.(Optional HeadMark)
+    Entries.(Vector EntryEnvelope)
   }
 
   AppendReceipt { store.StoreName head.HeadMark }
@@ -60,7 +60,7 @@
   AppendRejection {
     store.StoreName
     reason.AppendRejectionReason
-    (AppendRejectionHead (Optional HeadMark))
+    AppendRejectionHead.(Optional HeadMark)
   }
 
   CheckpointArtifact {
@@ -85,7 +85,7 @@
   ObjectNotice {
     store.StoreName
     head.HeadMark
-    (Source (Optional MirrorAddress))
+    Source.(Optional MirrorAddress)
   }
 
   ObjectNoticeReceipt { store.StoreName head.HeadMark }
@@ -94,7 +94,7 @@
   ObjectNoticeRejection {
     store.StoreName
     reason.ObjectNoticeRejectionReason
-    (ObjectNoticeRejectionHead (Optional HeadMark))
+    ObjectNoticeRejectionHead.(Optional HeadMark)
   }
 
   RestoreQuery StoreName
@@ -102,7 +102,7 @@
   RestoreBundle {
     store.StoreName
     checkpoint.CheckpointArtifact
-    (Suffix (Vector EntryEnvelope))
+    Suffix.(Vector EntryEnvelope)
   }
 
   RestoreRejectionReason [UnknownStore NoCheckpoint]
@@ -114,6 +114,6 @@
   FaultReport FaultDetail
 
   HeadQuery (Optional StoreName)
-  StoreHead { store.StoreName (StoreHeadMark (Optional HeadMark)) }
-  HeadListing { (Heads (Vector StoreHead)) }
+  StoreHead { store.StoreName StoreHeadMark.(Optional HeadMark) }
+  HeadListing { Heads.(Vector StoreHead) }
 }
