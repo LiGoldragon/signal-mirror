@@ -9,6 +9,16 @@ source, `build.rs` drives `schema_rust::build::ContractCrateBuild`
 `primary/skills/contract-repo.md`; only contract-specific shape is stated
 here.
 
+## Direction
+
+The mirror triad is a dedicated payload-blind sema version-control component. Per Spirit `0yx5` (Decision, High): one payload-blind append-ingest mirror daemon on the ouranos tailnet host serves every component store — it validates sequence continuity and expected head, deduplicates idempotently, fsyncs before acknowledging, and carries retention and privacy policy behind its meta signal. The mirror daemon's own durable state is a sema-engine store.
+
+Per Spirit `29pb` (Constraint, High): component sema databases must be backed up atomically; state loss is unacceptable. The mirror triad is the mechanism; this contract is its ordinary wire surface.
+
+Per Spirit `x0ja` (Constraint, High): one consistent cryptographic basis spans the entire version-control and backup system — blake3 for all content addressing, criome BLS for signing and attesting history. All digests in this contract are blake3 (32 bytes). The BLS signing and attestation leg is deferred to a later cut; this contract carries no signature fields yet.
+
+Per Spirit `rj9y` (Decision, High): cross-host component transport is a tailnet-bound TCP listener in `triad-runtime`, reusing the length-prefixed frame codec. Ssh-forwarded sockets are rejected as the transport shape.
+
 ## The relation
 
 One relation: **component store ↔ mirror daemon**, over Unix socket
