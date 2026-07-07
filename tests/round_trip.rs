@@ -35,8 +35,8 @@ fn digest(seed: u8) -> EntryDigest {
 
 fn head(sequence: u64, seed: u8) -> HeadMark {
     HeadMark {
-        sequence: CommitSequence::new(sequence),
-        digest: digest(seed),
+        commit_sequence: CommitSequence::new(sequence),
+        entry_digest: digest(seed),
     }
 }
 
@@ -51,11 +51,11 @@ fn envelope(sequence: u64, previous: Option<u8>, seed: u8) -> EntryEnvelope {
 
 fn artifact(sequence: u64, covered_end: u64) -> CheckpointArtifact {
     CheckpointArtifact {
-        store: store("spirit"),
-        sequence: CheckpointSequence::new(sequence),
-        covered_end: CommitSequence::new(covered_end),
-        digest: ArtifactDigest::new(FixedBytes::new([7; 32])),
-        artifact: ArtifactBytes::new(Bytes::new(vec![1, 2, 3, 4])),
+        store_name: store("spirit"),
+        checkpoint_sequence: CheckpointSequence::new(sequence),
+        commit_sequence: CommitSequence::new(covered_end),
+        artifact_digest: ArtifactDigest::new(FixedBytes::new([7; 32])),
+        artifact_bytes: ArtifactBytes::new(Bytes::new(vec![1, 2, 3, 4])),
     }
 }
 
@@ -181,8 +181,8 @@ fn observe_heads_request_round_trips_for_one_store_and_for_all() {
 #[test]
 fn appended_reply_round_trips() {
     let reply = Output::Appended(AppendReceipt {
-        store: store("spirit"),
-        head: head(4, 0x44),
+        store_name: store("spirit"),
+        head_mark: head(4, 0x44),
     });
     assert_reply_round_trips(reply.clone());
     assert_nota_round_trips(&reply);
@@ -210,9 +210,9 @@ fn append_rejected_reply_round_trips_with_every_typed_reason() {
 #[test]
 fn checkpoint_published_reply_round_trips() {
     let reply = Output::CheckpointPublished(CheckpointReceipt {
-        store: store("spirit"),
-        sequence: CheckpointSequence::new(1),
-        covered_end: CommitSequence::new(4),
+        store_name: store("spirit"),
+        checkpoint_sequence: CheckpointSequence::new(1),
+        commit_sequence: CommitSequence::new(4),
     });
     assert_reply_round_trips(reply.clone());
     assert_nota_round_trips(&reply);
@@ -225,8 +225,8 @@ fn publish_rejected_reply_round_trips() {
         PublishRejectionReason::CoverageRegressed,
     ] {
         let reply = Output::PublishRejected(PublishRejection {
-            store: store("spirit"),
-            reason,
+            store_name: store("spirit"),
+            publish_rejection_reason: reason,
         });
         assert_reply_round_trips(reply.clone());
         assert_nota_round_trips(&reply);
@@ -236,8 +236,8 @@ fn publish_rejected_reply_round_trips() {
 #[test]
 fn object_notice_replies_round_trip() {
     let accepted = Output::ObjectNoticeAccepted(ObjectNoticeReceipt {
-        store: store("spirit"),
-        head: head(4, 0x44),
+        store_name: store("spirit"),
+        head_mark: head(4, 0x44),
     });
     assert_reply_round_trips(accepted.clone());
     assert_nota_round_trips(&accepted);
@@ -275,8 +275,8 @@ fn restore_rejected_reply_round_trips() {
         RestoreRejectionReason::NoCheckpoint,
     ] {
         let reply = Output::RestoreRejected(RestoreRejection {
-            store: store("spirit"),
-            reason,
+            store_name: store("spirit"),
+            restore_rejection_reason: reason,
         });
         assert_reply_round_trips(reply.clone());
         assert_nota_round_trips(&reply);
@@ -312,7 +312,10 @@ fn payload_bytes_stay_opaque_through_the_frame() {
     match decoded.into_body() {
         FrameBody::Request { request, .. } => match request.payloads().head() {
             Input::Append(suffix) => {
-                assert_eq!(suffix.entries()[0].payload.as_slice(), opaque.as_slice());
+                assert_eq!(
+                    suffix.entries()[0].payload_bytes.as_slice(),
+                    opaque.as_slice()
+                );
             }
             other => panic!("expected Append, got {other:?}"),
         },

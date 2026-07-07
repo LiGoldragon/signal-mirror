@@ -39,74 +39,74 @@
   PayloadBytes Bytes
   ArtifactBytes Bytes
 
-  HeadMark { sequence.CommitSequence digest.EntryDigest }
+  HeadMark { CommitSequence EntryDigest }
 
   EntryEnvelope {
-    sequence.CommitSequence
+    CommitSequence
     PreviousDigest.(Optional EntryDigest)
-    digest.EntryDigest
-    payload.PayloadBytes
+    EntryDigest
+    PayloadBytes
   }
 
   EntrySuffix {
-    store.StoreName
+    StoreName
     ExpectedHead.(Optional HeadMark)
     Entries.(Vector EntryEnvelope)
   }
 
-  AppendReceipt { store.StoreName head.HeadMark }
+  AppendReceipt { StoreName HeadMark }
 
   AppendRejectionReason [UnknownStore SequenceGap HeadForked DigestMismatch EmptySuffix]
   AppendRejection {
-    store.StoreName
-    reason.AppendRejectionReason
+    StoreName
+    AppendRejectionReason
     AppendRejectionHead.(Optional HeadMark)
   }
 
   CheckpointArtifact {
-    store.StoreName
-    sequence.CheckpointSequence
-    covered_end.CommitSequence
-    digest.ArtifactDigest
-    artifact.ArtifactBytes
+    StoreName
+    CheckpointSequence
+    CommitSequence
+    ArtifactDigest
+    ArtifactBytes
   }
 
   CheckpointReceipt {
-    store.StoreName
-    sequence.CheckpointSequence
-    covered_end.CommitSequence
+    StoreName
+    CheckpointSequence
+    CommitSequence
   }
 
   PublishRejectionReason [UnknownStore CoverageRegressed]
-  PublishRejection { store.StoreName reason.PublishRejectionReason }
+  PublishRejection { StoreName PublishRejectionReason }
 
   MirrorAddress String
 
   ObjectNotice {
-    store.StoreName
-    head.HeadMark
+    StoreName
+    HeadMark
     Source.(Optional MirrorAddress)
   }
 
-  ObjectNoticeReceipt { store.StoreName head.HeadMark }
+  ObjectNoticeReceipt { StoreName HeadMark }
 
   ObjectNoticeRejectionReason [UnknownStore SourceUnavailable HeadBehind]
   ObjectNoticeRejection {
-    store.StoreName
-    reason.ObjectNoticeRejectionReason
+    StoreName
+    ObjectNoticeRejectionReason
     ObjectNoticeRejectionHead.(Optional HeadMark)
   }
 
   RestoreQuery StoreName
 
   RestoreBundle {
-    store.StoreName
-    checkpoint.CheckpointArtifact
+    StoreName
+    CheckpointArtifact
     Suffix.(Vector EntryEnvelope)
   }
 
   RestoreRejectionReason [UnknownStore NoCheckpoint]
-  RestoreRejection { store.StoreName reason.RestoreRejectionReason }
+  RestoreRejection { StoreName RestoreRejectionReason }
 
   ;; The mirror's internal-fault reply: a storage fault surfaced as a
   ;; typed report instead of a dropped connection.
@@ -114,6 +114,6 @@
   FaultReport FaultDetail
 
   HeadQuery (Optional StoreName)
-  StoreHead { store.StoreName StoreHeadMark.(Optional HeadMark) }
+  StoreHead { StoreName StoreHeadMark.(Optional HeadMark) }
   HeadListing { Heads.(Vector StoreHead) }
 }

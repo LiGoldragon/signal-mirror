@@ -136,8 +136,8 @@ pub struct ArtifactBytes(Bytes);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct HeadMark {
-    pub sequence: CommitSequence,
-    pub digest: EntryDigest,
+    pub commit_sequence: CommitSequence,
+    pub entry_digest: EntryDigest,
 }
 
 #[rustfmt::skip]
@@ -155,10 +155,10 @@ pub(crate) struct PreviousDigest(Option<EntryDigest>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct EntryEnvelope {
-    pub sequence: CommitSequence,
+    pub commit_sequence: CommitSequence,
     pub(crate) previous_digest: PreviousDigest,
-    pub digest: EntryDigest,
-    pub payload: PayloadBytes,
+    pub entry_digest: EntryDigest,
+    pub payload_bytes: PayloadBytes,
 }
 
 #[rustfmt::skip]
@@ -184,7 +184,7 @@ pub(crate) struct Entries(Vec<EntryEnvelope>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct EntrySuffix {
-    pub store: StoreName,
+    pub store_name: StoreName,
     pub(crate) expected_head: ExpectedHead,
     pub(crate) entries: Entries,
 }
@@ -196,8 +196,8 @@ pub struct EntrySuffix {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AppendReceipt {
-    pub store: StoreName,
-    pub head: HeadMark,
+    pub store_name: StoreName,
+    pub head_mark: HeadMark,
 }
 
 #[rustfmt::skip]
@@ -238,8 +238,8 @@ pub(crate) struct AppendRejectionHead(Option<HeadMark>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AppendRejection {
-    pub store: StoreName,
-    pub reason: AppendRejectionReason,
+    pub store_name: StoreName,
+    pub append_rejection_reason: AppendRejectionReason,
     pub(crate) append_rejection_head: AppendRejectionHead,
 }
 
@@ -250,11 +250,11 @@ pub struct AppendRejection {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CheckpointArtifact {
-    pub store: StoreName,
-    pub sequence: CheckpointSequence,
-    pub covered_end: CommitSequence,
-    pub digest: ArtifactDigest,
-    pub artifact: ArtifactBytes,
+    pub store_name: StoreName,
+    pub checkpoint_sequence: CheckpointSequence,
+    pub commit_sequence: CommitSequence,
+    pub artifact_digest: ArtifactDigest,
+    pub artifact_bytes: ArtifactBytes,
 }
 
 #[rustfmt::skip]
@@ -264,9 +264,9 @@ pub struct CheckpointArtifact {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CheckpointReceipt {
-    pub store: StoreName,
-    pub sequence: CheckpointSequence,
-    pub covered_end: CommitSequence,
+    pub store_name: StoreName,
+    pub checkpoint_sequence: CheckpointSequence,
+    pub commit_sequence: CommitSequence,
 }
 
 #[rustfmt::skip]
@@ -296,8 +296,8 @@ pub enum PublishRejectionReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PublishRejection {
-    pub store: StoreName,
-    pub reason: PublishRejectionReason,
+    pub store_name: StoreName,
+    pub publish_rejection_reason: PublishRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -323,8 +323,8 @@ pub(crate) struct Source(Option<MirrorAddress>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectNotice {
-    pub store: StoreName,
-    pub head: HeadMark,
+    pub store_name: StoreName,
+    pub head_mark: HeadMark,
     pub(crate) source: Source,
 }
 
@@ -335,8 +335,8 @@ pub struct ObjectNotice {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectNoticeReceipt {
-    pub store: StoreName,
-    pub head: HeadMark,
+    pub store_name: StoreName,
+    pub head_mark: HeadMark,
 }
 
 #[rustfmt::skip]
@@ -375,8 +375,8 @@ pub(crate) struct ObjectNoticeRejectionHead(Option<HeadMark>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectNoticeRejection {
-    pub store: StoreName,
-    pub reason: ObjectNoticeRejectionReason,
+    pub store_name: StoreName,
+    pub object_notice_rejection_reason: ObjectNoticeRejectionReason,
     pub(crate) object_notice_rejection_head: ObjectNoticeRejectionHead,
 }
 
@@ -403,8 +403,8 @@ pub(crate) struct Suffix(Vec<EntryEnvelope>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RestoreBundle {
-    pub store: StoreName,
-    pub checkpoint: CheckpointArtifact,
+    pub store_name: StoreName,
+    pub checkpoint_artifact: CheckpointArtifact,
     pub(crate) suffix: Suffix,
 }
 
@@ -435,8 +435,8 @@ pub enum RestoreRejectionReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RestoreRejection {
-    pub store: StoreName,
-    pub reason: RestoreRejectionReason,
+    pub store_name: StoreName,
+    pub restore_rejection_reason: RestoreRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -478,7 +478,7 @@ pub(crate) struct StoreHeadMark(Option<HeadMark>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct StoreHead {
-    pub store: StoreName,
+    pub store_name: StoreName,
     pub(crate) store_head_mark: StoreHeadMark,
 }
 

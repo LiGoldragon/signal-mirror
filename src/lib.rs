@@ -54,16 +54,16 @@ impl ArtifactBytes {
 
 impl EntryEnvelope {
     pub fn new(
-        sequence: CommitSequence,
+        commit_sequence: CommitSequence,
         previous_digest: Option<EntryDigest>,
-        digest: EntryDigest,
-        payload: PayloadBytes,
+        entry_digest: EntryDigest,
+        payload_bytes: PayloadBytes,
     ) -> Self {
         Self {
-            sequence,
+            commit_sequence,
             previous_digest: PreviousDigest::new(previous_digest),
-            digest,
-            payload,
+            entry_digest,
+            payload_bytes,
         }
     }
 
@@ -78,12 +78,12 @@ impl EntryEnvelope {
 
 impl EntrySuffix {
     pub fn from_entries(
-        store: StoreName,
+        store_name: StoreName,
         expected_head: Option<HeadMark>,
         entries: Vec<EntryEnvelope>,
     ) -> Self {
         Self {
-            store,
+            store_name,
             expected_head: ExpectedHead::new(expected_head),
             entries: Entries::new(entries),
         }
@@ -103,10 +103,14 @@ impl EntrySuffix {
 }
 
 impl AppendRejection {
-    pub fn new(store: StoreName, reason: AppendRejectionReason, head: Option<HeadMark>) -> Self {
+    pub fn new(
+        store_name: StoreName,
+        append_rejection_reason: AppendRejectionReason,
+        head: Option<HeadMark>,
+    ) -> Self {
         Self {
-            store,
-            reason,
+            store_name,
+            append_rejection_reason,
             append_rejection_head: AppendRejectionHead::new(head),
         }
     }
@@ -117,10 +121,10 @@ impl AppendRejection {
 }
 
 impl ObjectNotice {
-    pub fn new(store: StoreName, head: HeadMark, source: Option<MirrorAddress>) -> Self {
+    pub fn new(store_name: StoreName, head_mark: HeadMark, source: Option<MirrorAddress>) -> Self {
         Self {
-            store,
-            head,
+            store_name,
+            head_mark,
             source: Source::new(source),
         }
     }
@@ -132,13 +136,13 @@ impl ObjectNotice {
 
 impl ObjectNoticeRejection {
     pub fn new(
-        store: StoreName,
-        reason: ObjectNoticeRejectionReason,
+        store_name: StoreName,
+        object_notice_rejection_reason: ObjectNoticeRejectionReason,
         head: Option<HeadMark>,
     ) -> Self {
         Self {
-            store,
-            reason,
+            store_name,
+            object_notice_rejection_reason,
             object_notice_rejection_head: ObjectNoticeRejectionHead::new(head),
         }
     }
@@ -150,13 +154,13 @@ impl ObjectNoticeRejection {
 
 impl RestoreBundle {
     pub fn from_suffix(
-        store: StoreName,
-        checkpoint: CheckpointArtifact,
+        store_name: StoreName,
+        checkpoint_artifact: CheckpointArtifact,
         suffix: Vec<EntryEnvelope>,
     ) -> Self {
         Self {
-            store,
-            checkpoint,
+            store_name,
+            checkpoint_artifact,
             suffix: Suffix::new(suffix),
         }
     }
@@ -171,9 +175,9 @@ impl RestoreBundle {
 }
 
 impl StoreHead {
-    pub fn new(store: StoreName, head: Option<HeadMark>) -> Self {
+    pub fn new(store_name: StoreName, head: Option<HeadMark>) -> Self {
         Self {
-            store,
+            store_name,
             store_head_mark: StoreHeadMark::new(head),
         }
     }
