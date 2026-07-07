@@ -1,14 +1,10 @@
 # signal-mirror agent notes
 
-Read `/home/li/primary/AGENTS.md` first, then this repo's `INTENT.md` and
-`ARCHITECTURE.md`.
+Read this repo's `INTENT.md` and `ARCHITECTURE.md` before editing.
 
 `signal-mirror` is the ordinary working wire contract of the mirror triad —
 the typed vocabulary components speak to the payload-blind sema
 version-control mirror daemon.
-
-Before editing, read `/home/li/primary/skills/contract-repo.md` and
-`/home/li/primary/skills/component-triad.md`.
 
 Load-bearing rules for this repo:
 
