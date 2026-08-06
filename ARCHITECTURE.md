@@ -1,69 +1,99 @@
-# signal-mirror — Architecture
+# signal-mirror architecture
 
-`signal-mirror` is the ordinary working wire contract of the mirror triad
-(`mirror` runtime, `signal-mirror` ordinary contract, `meta-signal-mirror`
-meta policy contract). It is schema-derived: `schema/lib.schema` is the
-source, `build.rs` drives `schema_rust::build::ContractCrateBuild`
-(`WireContract` target), and the generated module is checked in at
-`src/schema/lib.rs`. It cites `primary/skills/component-triad.md` and
-`primary/skills/contract-repo.md`; only contract-specific shape is stated
-here.
+`signal-mirror` is the ordinary Interface between a versioned component store
+and a payload-blind mirror. Many stores may use one mirror; every operation
+names the store whose history it concerns. The mirror never needs the component
+schema to preserve, validate, and return that history.
 
-## Direction
+## Semantic center
 
-The mirror triad is a dedicated payload-blind sema version-control component. Per Spirit `0yx5` (Decision, High): one payload-blind append-ingest mirror daemon on the ouranos tailnet host serves every component store — it validates sequence continuity and expected head, deduplicates idempotently, fsyncs before acknowledging, and carries retention and privacy policy behind its meta signal. The mirror daemon's own durable state is a sema-engine store.
+A mirrored history is an ordered chain of content-addressed opaque entries plus
+optional checkpoint artifacts. The component owns the meaning of every payload.
+The mirror owns continuity and durable availability: it can reject a sequence
+gap, a fork from the expected head, an invalid digest relation, an empty suffix,
+or an unknown store without decoding a payload.
 
-Per Spirit `29pb` (Constraint, High): component sema databases must be backed up atomically; state loss is unacceptable. The mirror triad is the mechanism; this contract is its ordinary wire surface.
+The request surface is:
 
-Per Spirit `x0ja` (Constraint, High): one consistent cryptographic basis spans the entire version-control and backup system — blake3 for all content addressing, criome BLS for signing and attesting history. All digests in this contract are blake3 (32 bytes). The BLS signing and attestation leg is deferred to a later cut; this contract carries no signature fields yet.
+| Request | Relation |
+| --- | --- |
+| `Append` | Add a nonempty suffix at an optional expected head. |
+| `PublishCheckpoint` | Store an opaque checkpoint covering a commit sequence. |
+| `NotifyObject` | Announce a store head and an optional source mirror endpoint. |
+| `Restore` | Return a checkpoint and the suffix following it. |
+| `ObserveHeads` | Return one store head or the mirror's complete head listing. |
 
-Per Spirit `rj9y` (Decision, High): cross-host component transport is a tailnet-bound TCP listener in `triad-runtime`, reusing the length-prefixed frame codec. Ssh-forwarded sockets are rejected as the transport shape.
-
-## The relation
-
-One relation: **component store ↔ mirror daemon**, over Unix socket
-(same-host) or tailnet TCP (cross-host), as length-prefixed signal frames.
-
-- **Endpoints.** A component-side shipper/restorer sends requests; the mirror
-  daemon replies. The mirror never initiates.
-- **Cardinality.** Many components to one mirror; each request names its
-  store.
-- **Direction.** `Append` and `PublishCheckpoint` push history; `Restore` and
-  `ObserveHeads` read it back. `NotifyObject` is the router-carried
-  object/head notice: it names the store, the announced head, and optionally
-  the source mirror endpoint a receiver can fetch from. Every operation is
-  request/reply in this cut.
-- **Authority.** The component mints commit sequences and digests (its
-  sema-engine versioned log already did); the mirror only validates
-  continuity and echoes heads. Store registration authority lives in
-  `meta-signal-mirror`, not here.
-- **Lifecycle vectors.** Appended / AppendRejected (gap, fork, unknown store,
-  digest mismatch, empty suffix), CheckpointPublished / PublishRejected,
-  Restored / RestoreRejected, HeadsObserved.
+Replies explicitly distinguish accepted state, domain rejection, and internal
+fault. No dropped connection is required to communicate a storage fault.
 
 ## Payload blindness
 
-`EntryEnvelope` is the wire projection of one
-`sema_engine::VersionedCommitLogEntry`: the envelope repeats the entry's
-commit sequence, previous digest, and digest beside opaque payload bytes, so
-the mirror can validate the hash chain without decoding component types.
-The payload bytes are the component's own rkyv encoding of the full entry;
-only the owning component ever decodes them. `CheckpointArtifact` is the
-same shape for checkpoints: chain metadata beside opaque artifact bytes.
+`EntryEnvelope` carries commit sequence, previous content address, current
+content address, and opaque payload octets. `CheckpointArtifact` carries store,
+checkpoint sequence, covered commit sequence, content address, and opaque
+artifact octets. Nothing in the Interface names a component record type.
 
-## Code map
+Octets are expressed as `Vector<Integer>` inside the semantic `PayloadBytes`
+and `ArtifactBytes` declarations. Current behavior provides validating
+conversions to and from octets; no Rust byte array, word size, compiler ABI, or
+fixed emitter shape is part of the textual authority.
 
-| Path | What |
-|---|---|
-| `schema/lib.schema` | the authored contract source |
-| `build.rs` | `ContractCrateBuild` — regenerate with `SIGNAL_MIRROR_UPDATE_SCHEMA_ARTIFACTS=1 cargo build` |
-| `src/schema/lib.rs` | generated wire types + signal-frame codec (never hand-edited) |
-| `src/lib.rs` | re-exports + small hand-written accessors on generated nouns |
-| `tests/round_trip.rs` | rkyv frame + NOTA text round-trips per operation |
+## Shared vocabulary
 
-## Not owned
+The Interface imports two identities from `signal-standard`:
 
-No runtime, no actors, no tokio, no validation logic — the append decision
-(expected head, dedup, gap/fork) is the mirror daemon's Nexus plane. NOTA is
-the optional text surface (`nota-text` feature, on by default); the wire is
-rkyv frames.
+- `ObjectDigest` is the shared content-address identity used for entry and
+  artifact coordinates. The mirror does not mint a second binary digest type.
+- `StandardSocket` is the shared network-or-local endpoint identity used by an
+  object notice. The mirror does not retain an opaque address string.
+
+`build.rs` resolves the exact Cargo-published standard Ethos directory, proves
+it is the source compiled by the pinned dependency, imports the producer's
+authority seats, and projects explicit encoded Rust paths. The import is not a
+copied declaration or readable alias.
+
+## Authority and projection
+
+`ethos/interface.ethos` is a role-free `Interface.{1 0 0}` and the only schema
+source. `MirrorRequest` and `MirrorReply` are ordinary declarations; request and
+reply seating remains behavior until the bootstrap language expresses that
+relation directly.
+
+`src/bootstrap_manifest.rs` contains the explicit authority, grammar,
+declaration, variant, and canonical-order seats. `build.rs` assembles exactly
+that authorized transition, revalidates it through Core Ethos/Nomos, and asks
+Rust Logos for the encoded projection in `src/schema/lib/generated.rs`.
+
+The generated projection contains no readable schema types.
+`src/schema/lib/behavior.rs` owns only present machine behavior:
+
+- structural conversion through the standard producer's recursive wire value;
+- Dotos encoding and decoding;
+- rkyv behavior for encoded declarations;
+- ordinary request/reply routes;
+- Signal framing at contract binding 9, wire revision 2.
+
+## Boundaries
+
+This repository contains no mirror actor, listener, authentication, durable
+store, chain-validation policy, retention policy, transport loop, or component
+decoder. Runtime decisions live in `mirror`; authority and retention changes
+live in `meta-signal-mirror`.
+
+The durable schema assumes no permanent compiler, host language, database,
+transport process, or operating system. Rust, rkyv, and the current Signal
+envelope are projections around the mirror relation, not its definition.
+
+## Verification
+
+The witnesses prove all five requests and all ten replies across the bound
+Signal frame, every reply through rkyv, and every root through Dotos. Canonical
+Dotos examples cover the complete surface, including imported object digests
+and socket endpoints. Boundary tests prove the standard pin, the corrected
+bootstrap train, the absence of bootstrap crates from the runtime graph, and
+the death of the legacy schema source, emitter, Nota, fixed-byte, and copied
+address/digest shapes.
+
+After changing the Interface, update the explicit manifest first and regenerate
+with `SIGNAL_MIRROR_UPDATE_INTERFACE_ARTIFACTS=1 cargo build --all-features`.
+An ordinary build must then prove the checked projection is fresh.

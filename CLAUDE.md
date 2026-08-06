@@ -1,1 +1,1 @@
-You MUST read AGENTS.md.
+@AGENTS.md

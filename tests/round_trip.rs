@@ -1,333 +1,241 @@
-//! Round-trip witnesses for the mirror's ordinary wire contract: every
-//! operation crosses the length-prefixed rkyv frame and the NOTA text
-//! surface without loss. Payload bytes stay opaque bytes on both
-//! surfaces — the mirror is payload-blind.
+use signal_mirror::*;
 
-use nota::{NotaDecode, NotaEncode, NotaSource};
-use signal_frame::{
-    ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply, RequestPayload, SessionEpoch,
-    SubReply,
-};
-use signal_mirror::{
-    AppendReceipt, AppendRejection, AppendRejectionReason, ArtifactBytes, ArtifactDigest, Bytes,
-    CheckpointArtifact, CheckpointReceipt, CheckpointSequence, CommitSequence, EntryDigest,
-    EntryEnvelope, EntrySuffix, FixedBytes, Frame, FrameBody, HeadListing, HeadMark, HeadQuery,
-    Input, MirrorAddress, ObjectNotice, ObjectNoticeReceipt, ObjectNoticeRejection,
-    ObjectNoticeRejectionReason, Output, PayloadBytes, PublishRejection, PublishRejectionReason,
-    RestoreBundle, RestoreQuery, RestoreRejection, RestoreRejectionReason, StoreHead, StoreName,
-};
+fn requests() -> Vec<(z2VVny, &'static str)> {
+    vec![
+        (
+            z2VVny::z2VVjQ(z2VTq5 {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: Some(z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                }),
+                field_2: vec![z2VPuU {
+                    field_0: z2VSAK::new(7),
+                    field_1: Some(signal_standard::schema::lib::z2VSyM::new(
+                        "blake3:aab".to_owned(),
+                    )),
+                    field_2: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                    field_3: z2VUwg::new(vec![7]),
+                }],
+            }),
+            "Append",
+        ),
+        (
+            z2VVny::z2VaYk(z2VZWt {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                },
+                field_2: Some(signal_standard::schema::lib::z2VduW::z2VNCH(
+                    signal_standard::schema::lib::z2VaVE {
+                        field_0: signal_standard::schema::lib::z2VLyh::new("mirror-aab".to_owned()),
+                        field_1: signal_standard::schema::lib::z2VQaE::new(7476),
+                    },
+                )),
+            }),
+            "NotifyObject",
+        ),
+        (
+            z2VVny::z2VNu6(z2VTXE {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VUKn::new(7),
+                field_2: z2VSAK::new(7),
+                field_3: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                field_4: z2VUxk::new(vec![7]),
+            }),
+            "PublishCheckpoint",
+        ),
+        (
+            z2VVny::z2VZ8E(z2Vdqa::new(Some(z2Ve8p::new("fixture".to_owned())))),
+            "ObserveHeads",
+        ),
+        (
+            z2VVny::z2VdHF(z2VbvA::new(z2Ve8p::new("fixture".to_owned()))),
+            "Restore",
+        ),
+    ]
+}
 
-fn exchange() -> ExchangeIdentifier {
-    ExchangeIdentifier::new(
-        SessionEpoch::new(1),
-        ExchangeLane::Connector,
-        LaneSequence::first(),
+fn replies() -> Vec<(z2VTqL, &'static str)> {
+    vec![
+        (
+            z2VTqL::z2VLCz(z2VbBN {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VPgu::z2VXM2,
+            }),
+            "RestoreRejected",
+        ),
+        (
+            z2VTqL::z2VMR1(z2VY7x {
+                field_0: vec![z2Vbm6 {
+                    field_0: z2Ve8p::new("fixture".to_owned()),
+                    field_1: Some(z2VcqM {
+                        field_0: z2VSAK::new(7),
+                        field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                    }),
+                }],
+            }),
+            "HeadsObserved",
+        ),
+        (
+            z2VTqL::z2VWHb(z2VbP4 {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2Vcs2::z2VWLf,
+            }),
+            "PublishRejected",
+        ),
+        (
+            z2VTqL::z2VR8x(z2VWFj {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                },
+            }),
+            "ObjectNoticeAccepted",
+        ),
+        (
+            z2VTqL::z2VPpj(z2Vc3D::new(z2VMCw::new("fixture".to_owned()))),
+            "MirrorFaulted",
+        ),
+        (
+            z2VTqL::z2VSxB(z2VQTe {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VdLR::z2VZJ4,
+                field_2: Some(z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                }),
+            }),
+            "ObjectNoticeRejected",
+        ),
+        (
+            z2VTqL::z2VXSq(z2VaxY {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                },
+            }),
+            "Appended",
+        ),
+        (
+            z2VTqL::z2VaSa(z2VLxP {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VUKn::new(7),
+                field_2: z2VSAK::new(7),
+            }),
+            "CheckpointPublished",
+        ),
+        (
+            z2VTqL::z2VVve(z2VYSu {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VTXE {
+                    field_0: z2Ve8p::new("fixture".to_owned()),
+                    field_1: z2VUKn::new(7),
+                    field_2: z2VSAK::new(7),
+                    field_3: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                    field_4: z2VUxk::new(vec![7]),
+                },
+                field_2: vec![z2VPuU {
+                    field_0: z2VSAK::new(7),
+                    field_1: Some(signal_standard::schema::lib::z2VSyM::new(
+                        "blake3:aab".to_owned(),
+                    )),
+                    field_2: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                    field_3: z2VUwg::new(vec![7]),
+                }],
+            }),
+            "Restored",
+        ),
+        (
+            z2VTqL::z2VX2Y(z2VUTH {
+                field_0: z2Ve8p::new("fixture".to_owned()),
+                field_1: z2VcyE::z2VcFn,
+                field_2: Some(z2VcqM {
+                    field_0: z2VSAK::new(7),
+                    field_1: signal_standard::schema::lib::z2VSyM::new("blake3:aab".to_owned()),
+                }),
+            }),
+            "AppendRejected",
+        ),
+    ]
+}
+
+fn exchange(epoch: u64) -> signal_frame::ExchangeIdentifier {
+    signal_frame::ExchangeIdentifier::new(
+        signal_frame::SessionEpoch::new(epoch),
+        signal_frame::ExchangeLane::Connector,
+        signal_frame::LaneSequence::first(),
     )
 }
 
-fn store(name: &str) -> StoreName {
-    StoreName::new(name.to_owned())
-}
-
-fn digest(seed: u8) -> EntryDigest {
-    EntryDigest::new(FixedBytes::new([seed; 32]))
-}
-
-fn head(sequence: u64, seed: u8) -> HeadMark {
-    HeadMark {
-        commit_sequence: CommitSequence::new(sequence),
-        entry_digest: digest(seed),
-    }
-}
-
-fn envelope(sequence: u64, previous: Option<u8>, seed: u8) -> EntryEnvelope {
-    EntryEnvelope::new(
-        CommitSequence::new(sequence),
-        previous.map(digest),
-        digest(seed),
-        PayloadBytes::new(Bytes::new(vec![0xde, 0xad, seed])),
-    )
-}
-
-fn artifact(sequence: u64, covered_end: u64) -> CheckpointArtifact {
-    CheckpointArtifact {
-        store_name: store("spirit"),
-        checkpoint_sequence: CheckpointSequence::new(sequence),
-        commit_sequence: CommitSequence::new(covered_end),
-        artifact_digest: ArtifactDigest::new(FixedBytes::new([7; 32])),
-        artifact_bytes: ArtifactBytes::new(Bytes::new(vec![1, 2, 3, 4])),
-    }
-}
-
-fn object_notice() -> ObjectNotice {
-    ObjectNotice::new(
-        store("spirit"),
-        head(4, 0x44),
-        Some(MirrorAddress::new(
-            "router.ouranos.goldragon.criome:7476".to_owned(),
-        )),
-    )
-}
-
-fn request_frame(request: Input) -> Frame {
-    Frame::new(FrameBody::Request {
-        exchange: exchange(),
-        request: request.into_request(),
-    })
-}
-
-fn reply_frame(reply: Output) -> Frame {
-    Frame::new(FrameBody::Reply {
-        exchange: exchange(),
-        reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply))),
-    })
-}
-
-fn assert_request_round_trips(request: Input) {
-    let frame = request_frame(request.clone());
-    let bytes = frame.encode_length_prefixed().expect("encode");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
-    match decoded.into_body() {
-        FrameBody::Request {
-            request: decoded_request,
-            ..
-        } => assert_eq!(decoded_request.payloads().head(), &request),
-        other => panic!("expected request frame, got {other:?}"),
-    }
-}
-
-fn assert_reply_round_trips(reply: Output) {
-    let frame = reply_frame(reply.clone());
-    let bytes = frame.encode_length_prefixed().expect("encode");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
-    match decoded.into_body() {
-        FrameBody::Reply {
-            reply: decoded_reply,
-            ..
-        } => match decoded_reply {
-            Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
-                SubReply::Ok(payload) => assert_eq!(payload, reply),
-                other => panic!("expected accepted reply payload, got {other:?}"),
-            },
-            Reply::Rejected { reason } => panic!("unexpected rejected reply: {reason:?}"),
-        },
-        other => panic!("expected reply frame, got {other:?}"),
-    }
-}
-
-fn assert_nota_round_trips<Value>(value: &Value)
-where
-    Value: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
-{
-    let text = value.to_nota();
-    let recovered = NotaSource::new(&text).parse::<Value>().expect("decode");
-    assert_eq!(&recovered, value);
-}
-
 #[test]
-fn append_request_round_trips_through_length_prefixed_frame() {
-    let request = Input::Append(EntrySuffix::from_entries(
-        store("spirit"),
-        Some(head(2, 0x22)),
-        vec![envelope(3, Some(0x22), 0x33), envelope(4, Some(0x33), 0x44)],
-    ));
-    assert_request_round_trips(request.clone());
-    assert_nota_round_trips(&request);
-}
-
-#[test]
-fn first_append_request_carries_no_expected_head() {
-    let request = Input::Append(EntrySuffix::from_entries(
-        store("spirit"),
-        None,
-        vec![envelope(1, None, 0x11)],
-    ));
-    assert_request_round_trips(request.clone());
-    assert_nota_round_trips(&request);
-}
-
-#[test]
-fn publish_checkpoint_request_round_trips() {
-    let request = Input::PublishCheckpoint(artifact(1, 4));
-    assert_request_round_trips(request.clone());
-    assert_nota_round_trips(&request);
-}
-
-#[test]
-fn notify_object_request_round_trips() {
-    let request = Input::NotifyObject(object_notice());
-    assert_request_round_trips(request.clone());
-    assert_nota_round_trips(&request);
-}
-
-#[test]
-fn restore_request_round_trips() {
-    let request = Input::Restore(RestoreQuery::new(store("spirit")));
-    assert_request_round_trips(request.clone());
-    assert_nota_round_trips(&request);
-}
-
-#[test]
-fn observe_heads_request_round_trips_for_one_store_and_for_all() {
-    for query in [
-        Input::ObserveHeads(HeadQuery::new(Some(store("spirit")))),
-        Input::ObserveHeads(HeadQuery::new(None)),
-    ] {
-        assert_request_round_trips(query.clone());
-        assert_nota_round_trips(&query);
+fn every_request_round_trips_through_the_bound_frame() {
+    for (request, _head) in requests() {
+        let expected = request.clone();
+        let encoded = request
+            .encode_request_frame(exchange(51))
+            .expect("request frame encodes");
+        let (decoded_exchange, decoded) =
+            ContractMarker::decode_single_request(&encoded).expect("request frame decodes");
+        assert_eq!(decoded_exchange, exchange(51));
+        assert_eq!(decoded, expected);
     }
 }
 
 #[test]
-fn appended_reply_round_trips() {
-    let reply = Output::Appended(AppendReceipt {
-        store_name: store("spirit"),
-        head_mark: head(4, 0x44),
-    });
-    assert_reply_round_trips(reply.clone());
-    assert_nota_round_trips(&reply);
-}
-
-#[test]
-fn append_rejected_reply_round_trips_with_every_typed_reason() {
-    for reason in [
-        AppendRejectionReason::UnknownStore,
-        AppendRejectionReason::SequenceGap,
-        AppendRejectionReason::HeadForked,
-        AppendRejectionReason::DigestMismatch,
-        AppendRejectionReason::EmptySuffix,
-    ] {
-        let reply = Output::AppendRejected(AppendRejection::new(
-            store("spirit"),
-            reason,
-            Some(head(2, 0x22)),
-        ));
-        assert_reply_round_trips(reply.clone());
-        assert_nota_round_trips(&reply);
+fn every_reply_has_bound_frame_and_rkyv_behavior() {
+    for (reply, _head) in replies() {
+        let expected = reply.clone();
+        let encoded = reply
+            .clone()
+            .encode_reply_frame(exchange(53))
+            .expect("reply frame encodes");
+        ContractMarker::decode_frame(&encoded).expect("reply frame decodes");
+        let archive = rkyv::to_bytes::<rkyv::rancor::Error>(&reply).expect("reply archives");
+        let recovered =
+            rkyv::from_bytes::<z2VTqL, rkyv::rancor::Error>(&archive).expect("reply recovers");
+        assert_eq!(recovered, expected);
     }
 }
 
 #[test]
-fn checkpoint_published_reply_round_trips() {
-    let reply = Output::CheckpointPublished(CheckpointReceipt {
-        store_name: store("spirit"),
-        checkpoint_sequence: CheckpointSequence::new(1),
-        commit_sequence: CommitSequence::new(4),
-    });
-    assert_reply_round_trips(reply.clone());
-    assert_nota_round_trips(&reply);
+fn opaque_payload_and_artifact_vectors_validate_as_octets() {
+    let payload = z2VUwg::from_octets(&[0, 127, 255]);
+    let artifact = z2VUxk::from_octets(&[1, 2, 3]);
+    assert_eq!(payload.octets().expect("payload octets"), [0, 127, 255]);
+    assert_eq!(artifact.octets().expect("artifact octets"), [1, 2, 3]);
+
+    let invalid = z2VUwg::new(vec![256]);
+    let error = invalid.octets().expect_err("integer is not an octet");
+    assert_eq!(error.offset, 0);
+    assert_eq!(error.value, 256);
 }
 
+#[cfg(feature = "dotos-text")]
 #[test]
-fn publish_rejected_reply_round_trips() {
-    for reason in [
-        PublishRejectionReason::UnknownStore,
-        PublishRejectionReason::CoverageRegressed,
-    ] {
-        let reply = Output::PublishRejected(PublishRejection {
-            store_name: store("spirit"),
-            publish_rejection_reason: reason,
-        });
-        assert_reply_round_trips(reply.clone());
-        assert_nota_round_trips(&reply);
+fn every_root_round_trips_through_dotos_with_visible_heads() {
+    use dotos::{DotosEncode, DotosSource};
+    for (request, head) in requests() {
+        let text = request.to_dotos();
+        assert!(text.starts_with(&format!("{head}.")), "{text}");
+        assert_eq!(
+            DotosSource::new(&text)
+                .parse::<z2VVny>()
+                .expect("request Dotos decodes"),
+            request
+        );
     }
-}
-
-#[test]
-fn object_notice_replies_round_trip() {
-    let accepted = Output::ObjectNoticeAccepted(ObjectNoticeReceipt {
-        store_name: store("spirit"),
-        head_mark: head(4, 0x44),
-    });
-    assert_reply_round_trips(accepted.clone());
-    assert_nota_round_trips(&accepted);
-
-    for reason in [
-        ObjectNoticeRejectionReason::UnknownStore,
-        ObjectNoticeRejectionReason::SourceUnavailable,
-        ObjectNoticeRejectionReason::HeadBehind,
-    ] {
-        let rejected = Output::ObjectNoticeRejected(ObjectNoticeRejection::new(
-            store("spirit"),
-            reason,
-            Some(head(2, 0x22)),
-        ));
-        assert_reply_round_trips(rejected.clone());
-        assert_nota_round_trips(&rejected);
+    for (reply, head) in replies() {
+        let text = reply.to_dotos();
+        assert!(text.starts_with(&format!("{head}.")), "{text}");
+        assert_eq!(
+            DotosSource::new(&text)
+                .parse::<z2VTqL>()
+                .expect("reply Dotos decodes"),
+            reply
+        );
     }
-}
-
-#[test]
-fn restored_reply_round_trips_with_checkpoint_and_suffix() {
-    let reply = Output::Restored(RestoreBundle::from_suffix(
-        store("spirit"),
-        artifact(1, 4),
-        vec![envelope(5, Some(0x44), 0x55)],
-    ));
-    assert_reply_round_trips(reply.clone());
-    assert_nota_round_trips(&reply);
-}
-
-#[test]
-fn restore_rejected_reply_round_trips() {
-    for reason in [
-        RestoreRejectionReason::UnknownStore,
-        RestoreRejectionReason::NoCheckpoint,
-    ] {
-        let reply = Output::RestoreRejected(RestoreRejection {
-            store_name: store("spirit"),
-            restore_rejection_reason: reason,
-        });
-        assert_reply_round_trips(reply.clone());
-        assert_nota_round_trips(&reply);
-    }
-}
-
-#[test]
-fn heads_observed_reply_round_trips() {
-    let reply = Output::HeadsObserved(HeadListing::from_heads(vec![
-        StoreHead::new(store("spirit"), Some(head(4, 0x44))),
-        StoreHead::new(store("message"), None),
-    ]));
-    assert_reply_round_trips(reply.clone());
-    assert_nota_round_trips(&reply);
-}
-
-#[test]
-fn payload_bytes_stay_opaque_through_the_frame() {
-    let opaque = vec![0x00, 0xff, 0x10, 0x80, 0x7f];
-    let request = Input::Append(EntrySuffix::from_entries(
-        store("spirit"),
-        None,
-        vec![EntryEnvelope::new(
-            CommitSequence::new(1),
-            None,
-            digest(0x11),
-            PayloadBytes::new(Bytes::new(opaque.clone())),
-        )],
-    ));
-    let frame = request_frame(request);
-    let bytes = frame.encode_length_prefixed().expect("encode");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode");
-    match decoded.into_body() {
-        FrameBody::Request { request, .. } => match request.payloads().head() {
-            Input::Append(suffix) => {
-                assert_eq!(
-                    suffix.entries()[0].payload_bytes.as_slice(),
-                    opaque.as_slice()
-                );
-            }
-            other => panic!("expected Append, got {other:?}"),
-        },
-        other => panic!("expected request frame, got {other:?}"),
-    }
-}
-
-#[test]
-fn mirror_faulted_reply_round_trips() {
-    let reply = Output::MirrorFaulted(signal_mirror::FaultReport::new(
-        signal_mirror::FaultDetail::new("ledger storage: io".to_owned()),
-    ));
-    assert_reply_round_trips(reply.clone());
-    assert_nota_round_trips(&reply);
 }
