@@ -286,7 +286,7 @@ dependencies = [
 [[package]]
 name = "signal-standard"
 version = "1.0.0"
-source = "git+https://github.com/LiGoldragon/signal-standard.git?rev=6688f8cad857547a572df96493076ec4df42e6cb#6688f8cad857547a572df96493076ec4df42e6cb"
+source = "git+https://github.com/LiGoldragon/signal-standard.git?rev=2c90fc9976b3af33f49cdf83bb33f7f246ae2b60#2c90fc9976b3af33f49cdf83bb33f7f246ae2b60"
 dependencies = [
  "datom-codec",
  "ethos-zero",

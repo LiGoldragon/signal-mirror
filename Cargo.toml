@@ -22,7 +22,7 @@ datom = ["dep:datom-codec", "dep:protos", "signal-standard/datom"]
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "f2cc06858d38a4028c928d33323a6d682e7c222f", optional = true }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "b543678cfc8609529cea7174eb4af8a64daa54ad", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal-standard = { git = "https://github.com/LiGoldragon/signal-standard.git", rev = "6688f8cad857547a572df96493076ec4df42e6cb", default-features = false }
+signal-standard = { git = "https://github.com/LiGoldragon/signal-standard.git", rev = "2c90fc9976b3af33f49cdf83bb33f7f246ae2b60", default-features = false }
 
 [build-dependencies]
 ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "4695ee0c1f5d00dcf5cceba08f5fa00412b92184" }
