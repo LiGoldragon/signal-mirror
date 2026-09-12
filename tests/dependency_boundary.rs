@@ -26,9 +26,9 @@ fn default_contract_has_no_retired_codec_or_generator() {
 }
 
 #[test]
-fn datom_is_opt_in_and_uses_final_identity() {
+fn datom_is_opt_in_and_uses_the_wave_cut_producers() {
     let tree = tree("normal", Some("datom"));
-    assert!(tree.contains("datom-codec v0.26.3"), "{tree}");
+    assert!(tree.contains("datom-codec v0.27.0"), "{tree}");
     assert!(tree.contains("protos v0.30.1"), "{tree}");
     assert!(!tree.contains("dotos"), "{tree}");
 }
