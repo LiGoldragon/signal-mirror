@@ -65,11 +65,11 @@
               cargoTestExtraArgs = "--test round_trip";
             }
           );
-          test-interface-contract = craneLib.cargoTest (
+          test-canonical = craneLib.cargoTest (
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoTestExtraArgs = "--test interface_contract";
+              cargoTestExtraArgs = "--features datom --test canonical";
             }
           );
           doc = craneLib.cargoDoc (
@@ -85,7 +85,7 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- -D warnings";
+              cargoClippyExtraArgs = "--all-targets --all-features -- -D warnings";
             }
           );
         };

@@ -54,24 +54,20 @@ copied declaration or readable alias.
 
 ## Authority and projection
 
-`ethos/interface.ethos` is a role-free `Interface.{1 0 0}` and the only schema
-source. `MirrorRequest` and `MirrorReply` are ordinary declarations; request and
-reply seating remains behavior until the bootstrap language expresses that
-relation directly.
+`ethos/signal.ethos` is a `Signal` root and the only schema source. It declares
+the five request roots and the ten reply roots directly; request and reply
+seating is expressed by the Signal root itself, not by behavior.
 
-`src/bootstrap_manifest.rs` contains the explicit authority, grammar,
-declaration, variant, and canonical-order seats. `build.rs` assembles exactly
-that authorized transition, revalidates it through Core Ethos/Nomos, and asks
-Rust Logos for the encoded projection in `src/schema/lib/generated.rs`.
+`build.rs` reads that source through `ethos-zero`, generates the Rust, and
+asserts the result equals the checked-in `src/generated/signal.rs`. The
+generated projection is the whole contract surface: `Query`, `Response`, and
+the declared payload types, each deriving the rkyv archive kinds and, under the
+`datom` feature, `Datomizable` and `Compositional`.
 
-The generated projection contains no readable schema types.
-`src/schema/lib/behavior.rs` owns only present machine behavior:
-
-- structural conversion through the standard producer's recursive wire value;
-- Dotos encoding and decoding;
-- rkyv behavior for encoded declarations;
-- ordinary request/reply routes;
-- Signal framing at contract binding 9, wire revision 2.
+The portable rkyv frame — `Signal`, `Signalizable`, `ByteViewable`,
+`Restorable` — comes from `signal` and is re-exported from `src/lib.rs`. This
+crate holds no frame of its own, so a mirror frame is the same type as every
+other contract's frame.
 
 ## Boundaries
 
@@ -82,18 +78,23 @@ live in `meta-signal-mirror`.
 
 The durable schema assumes no permanent compiler, host language, database,
 transport process, or operating system. Rust, rkyv, and the current Signal
-envelope are projections around the mirror relation, not its definition.
+frame are projections around the mirror relation, not its definition.
 
 ## Verification
 
-The witnesses prove all five requests and all ten replies across the bound
-Signal frame, every reply through rkyv, and every root through Dotos. Canonical
-Dotos examples cover the complete surface, including imported object digests
-and socket endpoints. Boundary tests prove the standard pin, the corrected
-bootstrap train, the absence of bootstrap crates from the runtime graph, and
-the death of the legacy schema source, emitter, Nota, fixed-byte, and copied
-address/digest shapes.
+`examples/canonical.datom` carries every one of the five request roots and ten
+reply roots as encoded Datom text. `tests/canonical.rs` actualizes each line
+through the codec, renders the value back, and requires the rendering to
+reproduce the authored line exactly; its root coverage is checked against
+exhaustive matches over `Query` and `Response`, so a root added to the Ethos
+source cannot compile until it is given a canonical line.
 
-After changing the Interface, update the explicit manifest first and regenerate
-with `SIGNAL_MIRROR_UPDATE_INTERFACE_ARTIFACTS=1 cargo build --all-features`.
-An ordinary build must then prove the checked projection is fresh.
+`tests/round_trip.rs` carries a request and a reply across fresh peer bytes
+through the shared frame and proves malformed bytes are refused.
+`tests/dependency_boundary.rs` proves the default graph pulls no retired codec
+or generator and that the `datom` feature resolves the pinned producer
+revisions.
+
+After changing `ethos/signal.ethos`, regenerate `src/generated/signal.rs` with
+`ethos-zero` and update `examples/canonical.datom`. An ordinary build then
+proves the checked projection is fresh.

@@ -9,8 +9,9 @@ contract.
 - Keep the Interface role-free and generated Rust encoded-only.
 - Mint explicit declaration and variant seats; never derive identity from
   spelling, position, or content.
-- Put structural, Dotos, rkyv, route, and Signal behavior in
-  `src/schema/lib/behavior.rs`.
+- Keep `ethos/signal.ethos` the sole schema source and the generated
+  `src/generated/signal.rs` the sole contract surface.
+- Take the portable rkyv frame from `signal`; never restate it here.
 - Do not add mirror actors, storage, validation policy, listeners, or component
   record types here.
 - Regenerate only with
