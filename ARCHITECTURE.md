@@ -61,13 +61,23 @@ seating is expressed by the Signal root itself, not by behavior.
 `build.rs` reads that source through `ethos-zero`, generates the Rust, and
 asserts the result equals the checked-in `src/generated/signal.rs`. The
 generated projection is the whole contract surface: `Query`, `Response`, and
-the declared payload types, each deriving the rkyv archive kinds and, under the
-`datom` feature, `Datomizable` and `Compositional`.
+the declared payload types, each deriving the rkyv archive kinds together with
+`Eq` and `Hash`, and, under the `datom` feature, `Datomizable` and `Composing`.
 
 The portable rkyv frame — `Signal`, `Signalizable`, `ByteViewable`,
 `Restorable` — comes from `signal` and is re-exported from `src/lib.rs`. This
 crate holds no frame of its own, so a mirror frame is the same type as every
 other contract's frame.
+
+## Contract identity
+
+`Query` bears `signal`'s `Contracted`, naming `MIRROR_SIGNAL_SOURCE` as the
+authored source this contract was generated from. That makes the contract's
+identity the digest of that source, so a connection is greeted once and two
+peers agree exactly when their sources agree; a mismatch is a typed refusal and
+never a negotiation. The digest is settled at compile time and this crate gains
+no dependency to carry it. `tests/accord.rs` proves the digest against a value
+computed outside this crate from the published FNV-1a algorithm.
 
 ## Boundaries
 
@@ -93,7 +103,8 @@ source cannot compile until it is given a canonical line.
 through the shared frame and proves malformed bytes are refused.
 `tests/dependency_boundary.rs` proves the default graph pulls no retired codec
 or generator and that the `datom` feature resolves the pinned producer
-revisions.
+revisions. `tests/accord.rs` proves the contract digest and both arms of the
+greeting receipt.
 
 After changing `ethos/signal.ethos`, regenerate `src/generated/signal.rs` with
 `ethos-zero` and update `examples/canonical.datom`. An ordinary build then

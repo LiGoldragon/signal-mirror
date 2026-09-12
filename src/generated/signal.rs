@@ -1,20 +1,20 @@
 #![allow(dead_code, non_camel_case_types, non_snake_case)]
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum PublishRejectionReason {
     UnknownStore,
     CoverageRegressed,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct AppendReceipt {
     pub store_name: StoreName,
     pub head_mark: HeadMark,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum AppendRejectionReason {
     UnknownStore,
@@ -26,14 +26,14 @@ pub enum AppendRejectionReason {
 #[rustfmt::skip]
 pub type RestoreQuery = StoreName;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct RestoreRejection {
     pub store_name: StoreName,
     pub restore_rejection_reason: RestoreRejectionReason,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct RestoreBundle {
     pub store_name: StoreName,
@@ -41,7 +41,7 @@ pub struct RestoreBundle {
     pub entry_envelope_vector: std::vec::Vec<EntryEnvelope>,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct ObjectNotice {
     pub store_name: StoreName,
@@ -49,14 +49,14 @@ pub struct ObjectNotice {
     pub standard_socket_option: Option<signal::StandardSocket>,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct ObjectNoticeReceipt {
     pub store_name: StoreName,
     pub head_mark: HeadMark,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct CheckpointReceipt {
     pub store_name: StoreName,
@@ -64,14 +64,14 @@ pub struct CheckpointReceipt {
     pub commit_sequence: CommitSequence,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum RestoreRejectionReason {
     NoCheckpoint,
     UnknownStore,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct StoreHead {
     pub store_name: StoreName,
@@ -82,7 +82,7 @@ pub type ArtifactBytes = std::vec::Vec<i64>;
 #[rustfmt::skip]
 pub type FaultDetail = String;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct EntrySuffix {
     pub store_name: StoreName,
@@ -94,14 +94,14 @@ pub type PayloadBytes = std::vec::Vec<i64>;
 #[rustfmt::skip]
 pub type CheckpointSequence = i64;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct HeadMark {
     pub commit_sequence: CommitSequence,
     pub object_digest: signal::ObjectDigest,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct EntryEnvelope {
     pub commit_sequence: CommitSequence,
@@ -112,7 +112,7 @@ pub struct EntryEnvelope {
 #[rustfmt::skip]
 pub type HeadQuery = std::option::Option<StoreName>;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct AppendRejection {
     pub store_name: StoreName,
@@ -120,7 +120,7 @@ pub struct AppendRejection {
     pub head_mark_option: Option<HeadMark>,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct PublishRejection {
     pub store_name: StoreName,
@@ -129,7 +129,7 @@ pub struct PublishRejection {
 #[rustfmt::skip]
 pub type StoreName = String;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct ObjectNoticeRejection {
     pub store_name: StoreName,
@@ -137,7 +137,7 @@ pub struct ObjectNoticeRejection {
     pub head_mark_option: Option<HeadMark>,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct CheckpointArtifact {
     pub store_name: StoreName,
@@ -147,7 +147,7 @@ pub struct CheckpointArtifact {
     pub artifact_bytes: ArtifactBytes,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum ObjectNoticeRejectionReason {
     UnknownStore,
@@ -157,7 +157,7 @@ pub enum ObjectNoticeRejectionReason {
 #[rustfmt::skip]
 pub type CommitSequence = i64;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct HeadListing {
     pub store_head_vector: std::vec::Vec<StoreHead>,
@@ -165,7 +165,7 @@ pub struct HeadListing {
 #[rustfmt::skip]
 pub type FaultReport = FaultDetail;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum Query {
     Append(EntrySuffix),
@@ -175,7 +175,7 @@ pub enum Query {
     Restore(RestoreQuery),
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum Response {
     RestoreRejected(RestoreRejection),

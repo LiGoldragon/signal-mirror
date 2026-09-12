@@ -11,9 +11,15 @@
 pub mod generated;
 pub use generated::*;
 
-pub use signal::{ByteViewable, Restorable, Signal, Signalizable};
+pub use signal::{ByteViewable, Contracted, Restorable, Signal, Signalizable};
 
 /// The authored Ethos source of this contract.
 pub const MIRROR_SIGNAL_SOURCE: &str = include_str!("../ethos/signal.ethos");
 /// The Rust projection generated from [`MIRROR_SIGNAL_SOURCE`].
 pub const MIRROR_SIGNAL_RUST: &str = include_str!("generated/signal.rs");
+
+/// This contract's identity on the exchange layer: the digest of the Ethos
+/// source above. Two peers agree exactly when their sources agree.
+impl Contracted for Query {
+    const CONTRACT_SOURCE: &'static str = MIRROR_SIGNAL_SOURCE;
+}
