@@ -28,7 +28,7 @@ fn default_contract_has_no_retired_codec_or_generator() {
 #[test]
 fn datom_is_opt_in_and_uses_final_identity() {
     let tree = tree("normal", Some("datom"));
-    assert!(tree.contains("datom-codec v0.25.6"), "{tree}");
-    assert!(tree.contains("protos v0.29.1"), "{tree}");
+    assert!(tree.contains("datom-codec v0.26.3"), "{tree}");
+    assert!(tree.contains("protos v0.30.1"), "{tree}");
     assert!(!tree.contains("dotos"), "{tree}");
 }
