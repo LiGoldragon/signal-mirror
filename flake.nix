@@ -72,13 +72,6 @@
               cargoTestExtraArgs = "--test interface_contract";
             }
           );
-          test-dotos-text = craneLib.cargoTest (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              cargoTestExtraArgs = "--features dotos-text --all-targets";
-            }
-          );
           doc = craneLib.cargoDoc (
             commonArgs
             // {
@@ -93,13 +86,6 @@
             // {
               inherit cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- -D warnings";
-            }
-          );
-          clippy-dotos-text = craneLib.cargoClippy (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--features dotos-text --all-targets -- -D warnings";
             }
           );
         };
