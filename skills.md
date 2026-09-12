@@ -3,7 +3,7 @@
 Read `ARCHITECTURE.md` and the shared standard Interface before changing this
 contract.
 
-- Treat `ethos/interface.ethos` as the sole schema authority.
+- Treat `ethos/signal.ethos` as the sole schema authority.
 - Keep component payloads and checkpoint artifacts opaque.
 - Import shared identities from their producer instead of copying them.
 - Keep the Interface role-free and generated Rust encoded-only.

@@ -1,5 +1,5 @@
 Signal
-[ signal_standard:[ ObjectDigest StandardSocket ] ]
+[ signal:[ ObjectDigest StandardSocket ] ]
 [ Append.EntrySuffix NotifyObject.ObjectNotice PublishCheckpoint.CheckpointArtifact ObserveHeads.HeadQuery Restore.RestoreQuery ]
 [ RestoreRejected.RestoreRejection HeadsObserved.HeadListing PublishRejected.PublishRejection ObjectNoticeAccepted.ObjectNoticeReceipt MirrorFaulted.FaultReport ObjectNoticeRejected.ObjectNoticeRejection Appended.AppendReceipt CheckpointPublished.CheckpointReceipt Restored.RestoreBundle AppendRejected.AppendRejection ]
 [

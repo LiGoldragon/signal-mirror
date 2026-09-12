@@ -11,7 +11,7 @@
 pub mod generated;
 pub use generated::*;
 
-pub use signal_standard::{ByteViewable, Restorable, Signal, Signalizable};
+pub use signal::{ByteViewable, Restorable, Signal, Signalizable};
 
 /// The authored Ethos source of this contract.
 pub const MIRROR_SIGNAL_SOURCE: &str = include_str!("../ethos/signal.ethos");

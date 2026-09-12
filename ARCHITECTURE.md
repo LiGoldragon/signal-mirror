@@ -40,7 +40,7 @@ fixed emitter shape is part of the textual authority.
 
 ## Shared vocabulary
 
-The Interface imports two identities from `signal-standard`:
+The contract imports two identities from `signal`:
 
 - `ObjectDigest` is the shared content-address identity used for entry and
   artifact coordinates. The mirror does not mint a second binary digest type.

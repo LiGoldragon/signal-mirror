@@ -64,7 +64,7 @@ pub struct RestoreBundle {
 pub struct ObjectNotice {
     pub store_name: StoreName,
     pub head_mark: HeadMark,
-    pub standard_socket_option: Option<signal_standard::StandardSocket>,
+    pub standard_socket_option: Option<signal::StandardSocket>,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
@@ -134,7 +134,7 @@ pub type CheckpointSequence = i64;
 )]
 pub struct HeadMark {
     pub commit_sequence: CommitSequence,
-    pub object_digest: signal_standard::ObjectDigest,
+    pub object_digest: signal::ObjectDigest,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
@@ -144,8 +144,8 @@ pub struct HeadMark {
 )]
 pub struct EntryEnvelope {
     pub commit_sequence: CommitSequence,
-    pub object_digest_option: Option<signal_standard::ObjectDigest>,
-    pub object_digest: signal_standard::ObjectDigest,
+    pub object_digest_option: Option<signal::ObjectDigest>,
+    pub object_digest: signal::ObjectDigest,
     pub payload_bytes: PayloadBytes,
 }
 #[rustfmt::skip]
@@ -194,7 +194,7 @@ pub struct CheckpointArtifact {
     pub store_name: StoreName,
     pub checkpoint_sequence: CheckpointSequence,
     pub commit_sequence: CommitSequence,
-    pub object_digest: signal_standard::ObjectDigest,
+    pub object_digest: signal::ObjectDigest,
     pub artifact_bytes: ArtifactBytes,
 }
 #[rustfmt::skip]
