@@ -19,7 +19,7 @@ fn default_contract_has_no_retired_codec_or_generator() {
         "signal-frame",
         "schema-rust",
         "core-ethos",
-        "sema-translator",
+        "memory-translator",
     ] {
         assert!(!tree.contains(forbidden), "{forbidden}: {tree}");
     }
