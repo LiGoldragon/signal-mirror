@@ -4,7 +4,7 @@ use signal_mirror::{
 
 #[test]
 fn query_restores_from_fresh_peer_bytes() {
-    let query = Query::ObserveHeads(HeadQuery::None);
+    let query = Query::ObserveHeads(HeadQuery(None));
     let outgoing = query.signalize().expect("archive query");
     assert!(!outgoing.bytes().is_empty());
     let incoming = Signal::<Query>::from(outgoing.bytes().to_vec());

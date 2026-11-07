@@ -8,7 +8,7 @@ use signal::{Handshake, HandshakeReceipt, HandshakeRejection};
 use signal_mirror::{Contracted, Query};
 
 /// FNV-1a over the bytes of `ethos/signal.ethos`, computed outside this crate.
-const MIRROR_CONTRACT_DIGEST: i64 = -6996542818645850325;
+const MIRROR_CONTRACT_DIGEST: signal::ContractDigest = signal::ContractDigest(-6996542818645850325);
 
 #[test]
 fn the_contract_identifies_itself_by_the_digest_of_its_authored_source() {
